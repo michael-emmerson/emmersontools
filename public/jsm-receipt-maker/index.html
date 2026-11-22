@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Just Shoot Me Receipt Maker</title>
+<style>
+  :root {
+    --navy: #44627e;
+    --navy-dark: #33495e;
+    --light: #d6e0ea;
+    --bg: #f3f5f8;
+    --text: #1f2a35;
+    --muted: #6b7a89;
+    --danger: #b3412f;
+    --ok: #2f7d4f;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; color: var(--text); background: var(--bg); }
+  header { background: #fff; border-bottom: 3px solid var(--navy); padding: 14px 24px; display: flex; align-items: center; gap: 20px; }
+  header img { height: 52px; }
+  header h1 { margin: 0; font-size: 26px; color: var(--navy); font-weight: 700; margin-left: auto; }
+  main { max-width: 1100px; margin: 0 auto; padding: 20px 24px 60px; display: grid; grid-template-columns: 1fr 300px; gap: 20px; }
+  @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+  section.card { background: #fff; border-radius: 8px; padding: 16px 18px; margin-bottom: 18px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+  section.card h2 { margin: 0 0 12px; font-size: 15px; text-transform: uppercase; letter-spacing: .04em; color: var(--navy); }
+  .row { display: flex; gap: 12px; flex-wrap: wrap; }
+  .row > label { flex: 1 1 160px; }
+  label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); }
+  input, select, textarea { display: block; width: 100%; margin-top: 4px; padding: 7px 9px; font: inherit; border: 1px solid #c4cdd6; border-radius: 5px; background: #fff; color: var(--text); }
+  textarea { resize: vertical; min-height: 58px; }
+  input:focus, select:focus, textarea:focus { outline: 2px solid var(--navy); outline-offset: -1px; border-color: var(--navy); }
+  input.money { text-align: right; }
+  .check { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text); font-weight: 500; margin-top: 10px; }
+  .check input { width: auto; margin: 0; }
+  button { font: inherit; border-radius: 6px; padding: 8px 14px; border: 1px solid var(--navy); background: #fff; color: var(--navy); cursor: pointer; font-weight: 600; }
+  button:hover { background: var(--light); }
+  button.primary { background: var(--navy); color: #fff; }
+  button.primary:hover { background: var(--navy-dark); }
+  button.link { border: none; padding: 2px 4px; background: none; font-weight: 500; }
+  .add-buttons { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+  .item { border: 1px solid #dfe5eb; border-left: 4px solid var(--navy); border-radius: 6px; padding: 12px; margin-bottom: 12px; position: relative; }
+  .item.transfer { border-left-color: #7a8f3a; }
+  .item.shipping { border-left-color: #b7832f; }
+  .item.service { border-left-color: #7a5a9a; }
+  .item-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .item-head strong { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; }
+  .item-head .remove { color: var(--danger); border: none; background: none; font-size: 13px; padding: 2px 6px; }
+  .item .line-total { font-weight: 700; text-align: right; margin-top: 8px; font-size: 14px; }
+  .item .hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
+  .empty { color: var(--muted); font-style: italic; padding: 6px 0 12px; }
+  .totals { width: 100%; border-collapse: collapse; }
+  .totals td { padding: 5px 0; }
+  .totals td:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+  .totals tr.grand td { border-top: 2px solid var(--navy); font-weight: 700; font-size: 18px; color: var(--navy); padding-top: 8px; }
+  .side { position: sticky; top: 16px; align-self: start; }
+  .actions { display: grid; gap: 8px; margin-top: 14px; }
+  .status { margin-top: 10px; font-size: 13px; }
+  .status.ok { color: var(--ok); }
+  .status.err { color: var(--danger); }
+  .log-tools { display: flex; gap: 6px; margin-bottom: 8px; }
+  .log-tools input, .log-tools select { margin-top: 0; padding: 5px 7px; font-size: 13px; }
+  .log-tools select { flex: 0 0 92px; }
+  .log { list-style: none; margin: 0; padding: 0; font-size: 13px; max-height: 420px; overflow: auto; }
+  .log li { padding: 7px 0; border-bottom: 1px solid #eef1f4; }
+  .log .l1 { display: flex; justify-content: space-between; gap: 6px; font-weight: 600; }
+  .log .l1 .amt { font-variant-numeric: tabular-nums; }
+  .log .l2 { display: flex; justify-content: space-between; gap: 6px; color: var(--muted); font-size: 12px; }
+  .log .l2 > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  .log .acts { flex-shrink: 0; white-space: nowrap; }
+  .log .tag { display: inline-block; font-size: 10px; font-weight: 700; padding: 0 5px; border-radius: 3px; background: var(--light); color: var(--navy); margin-right: 4px; vertical-align: 1px; }
+  .log .tag.p { background: #efe3cf; color: #7a5520; }
+  .log .acts button { border: none; background: none; padding: 0 3px; font-size: 12px; font-weight: 500; color: var(--navy); }
+  .log .acts button.del { color: var(--danger); }
+  .log-foot { display: flex; flex-wrap: wrap; gap: 2px 8px; margin-top: 8px; }
+  .muted { color: var(--muted); font-size: 12px; }
+  .mode { display: inline-flex; border: 1px solid var(--navy); border-radius: 8px; overflow: hidden; margin-bottom: 16px; background: #fff; }
+  .mode button { border: none; border-radius: 0; padding: 9px 18px; }
+  .mode button.active { background: var(--navy); color: #fff; }
+  body.purchase .sale-only { display: none !important; }
+  body:not(.purchase) .purchase-only { display: none !important; }
+</style>
+</head>
+<body>
+<header>
+  <img src="logo.png" alt="Just Shoot Me">
+  <h1>Receipt Maker</h1>
+</header>
+
+<main>
+  <div>
+    <div class="mode" id="mode">
+      <button type="button" data-mode="sale" class="active" onclick="setMode('sale')">Sales Receipt</button>
+      <button type="button" data-mode="purchase" onclick="setMode('purchase')">Purchase Receipt</button>
+    </div>
+    <section class="card">
+      <h2>Receipt</h2>
+      <div class="row">
+        <label>Receipt #<input id="number"></label>
+        <label>Date<input id="date" type="date"></label>
+        <label><span id="paymentLabel">Payment method</span>
+          <select id="payment">
+            <option>Cash</option><option>Check</option><option>Venmo</option><option>Zelle</option>
+            <option>PayPal</option><option>Credit Card</option><option>Other</option>
+          </select>
+        </label>
+        <label>Check / reference no.<input id="checkno"></label>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 id="partyTitle">Sold to</h2>
+      <div class="row">
+        <label><span id="nameLabel">Customer name</span><input id="name" autocomplete="off"></label>
+        <label>Phone<input id="phone" autocomplete="off"></label>
+        <label>Email<input id="email" autocomplete="off"></label>
+        <label class="purchase-only">ID type &amp; number<input id="idnum" autocomplete="off" placeholder="e.g. OR DL 1234567"></label>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <label>Address<textarea id="address" placeholder="Street&#10;City, State ZIP"></textarea></label>
+      </div>
+      <label class="check sale-only"><input type="checkbox" id="shipToggle"> Ship to a different address</label>
+      <div class="row sale-only" id="shipBox" style="margin-top:10px; display:none">
+        <label>Ship to<textarea id="shipto" placeholder="Name or business&#10;Street&#10;City, State ZIP"></textarea></label>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Items</h2>
+      <div id="items"></div>
+      <div class="add-buttons">
+        <button type="button" onclick="addItem('product')">+ Firearm / Accessory</button>
+        <button type="button" class="sale-only" onclick="addItem('service')">+ Service</button>
+        <button type="button" class="sale-only" onclick="addItem('transfer')">+ Transfer Fee</button>
+        <button type="button" class="sale-only" onclick="addItem('shipping')">+ Shipping</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 id="adjTitle">Adjustments &amp; notes</h2>
+      <div class="row sale-only">
+        <label>Discount ($)<input id="discount" class="money" type="number" min="0" step="0.01" placeholder="0.00"></label>
+        <label>Deposit / prepaid ($)<input id="deposit" class="money" type="number" min="0" step="0.01" placeholder="0.00"></label>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <label>Notes (printed on the receipt)<textarea id="notes"></textarea></label>
+      </div>
+    </section>
+  </div>
+
+  <aside class="side">
+    <section class="card">
+      <h2>Totals</h2>
+      <table class="totals" id="totals"></table>
+      <div class="actions">
+        <button class="primary" type="button" onclick="saveReceipt()">Download PDF</button>
+        <button type="button" onclick="previewReceipt()">Preview PDF</button>
+        <button type="button" onclick="newReceipt()">Start a new receipt</button>
+      </div>
+      <div class="status" id="status"></div>
+    </section>
+    <section class="card">
+      <h2>Receipt log <span class="muted" id="logCount" style="text-transform:none;letter-spacing:0;font-weight:500"></span></h2>
+      <div class="log-tools">
+        <input id="logSearch" type="search" placeholder="Search name or #" oninput="renderLog()">
+        <select id="logType" onchange="renderLog()"><option value="">All</option><option value="sale">Sales</option><option value="purchase">Purchases</option></select>
+      </div>
+      <ul class="log" id="log"></ul>
+      <div class="log-foot">
+        <button class="link" type="button" onclick="exportCsv()">Export CSV</button>
+        <button class="link" type="button" onclick="backupLog()">Back up log</button>
+        <button class="link" type="button" onclick="$('importFile').click()">Restore / import</button>
+        <input type="file" id="importFile" accept=".json,.pdf,application/json,application/pdf" multiple style="display:none" onchange="importFiles(this.files); this.value=''">
+      </div>
+      <div class="muted" style="margin-top:6px">The log is kept in this browser. Back it up now and then. To add receipts made before the log existed, choose Restore / import and select those PDFs.</div>
+    </section>
+  </aside>
+</main>
+
+<script src="vendor/jspdf.umd.min.js"></script>
+<script src="vendor/jspdf.plugin.autotable.min.js"></script>
+<script>
+// ---- Fee rules ------------------------------------------------------------
+const TRANSFER_FEE = 50;   // per firearm
+const SHIPPING_FEE = 25;   // per item shipped, unless overridden
+
+const BUSINESS = {
+  name: "Just Shoot Me, LLC",
+  tagline: "Specializing in Silencers and Online Firearms Transfers",
+  address: "22751 W. Bluff Ct., West Linn, OR 97068",
+  phone: "(503) 453-7010",
+  email: "sales@justshoot-me.com",
+};
+
+// ---- State ----------------------------------------------------------------
+let mode = "sale";   // "sale" or "purchase"
+let items = [];
+let nextId = 1;
+let logoDataUrl = null;
+const $ = id => document.getElementById(id);
+const money = n => "$" + (Math.round(n * 100) / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const num = v => { const n = parseFloat(v); return isNaN(n) ? 0 : n; };
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+function addItem(kind) {
+  const base = { id: nextId++, kind, qty: 1, description: "" };
+  if (kind === "product") Object.assign(base, { type: "Firearm", serial: "", price: "", transfer: mode === "sale" });
+  if (kind === "transfer") Object.assign(base, { description: "" });
+  if (kind === "shipping") Object.assign(base, { override: "" });
+  if (kind === "service") Object.assign(base, { price: "" });
+  items.push(base);
+  render();
+  const el = document.querySelector(`[data-id="${base.id}"] input[data-f="description"]`);
+  if (el) el.focus();
+}
+
+function removeItem(id) { items = items.filter(i => i.id !== id); render(); }
+
+function update(id, field, value) {
+  const it = items.find(i => i.id === id);
+  it[field] = value;
+  if (field === "type") render(); else renderTotals();
+}
+
+function lineTotal(it) {
+  const qty = Math.max(0, num(it.qty));
+  if (it.kind === "product" || it.kind === "service") return qty * num(it.price);
+  if (it.kind === "transfer") return qty * TRANSFER_FEE;
+  if (it.kind === "shipping") return it.override !== "" && it.override != null ? num(it.override) : qty * SHIPPING_FEE;
+  return 0;
+}
+function autoTransferTotal(it) {
+  return mode === "sale" && it.kind === "product" && it.type === "Firearm" && it.transfer ? Math.max(0, num(it.qty)) * TRANSFER_FEE : 0;
+}
+
+function field(it, f, label, opts = {}) {
+  const type = opts.type || "text";
+  const cls = opts.money ? "money" : "";
+  const extra = opts.money ? 'min="0" step="0.01"' : (type === "number" ? 'min="1" step="1"' : "");
+  const ph = opts.placeholder ? `placeholder="${esc(opts.placeholder)}"` : "";
+  return `<label style="flex:${opts.flex || "1 1 140px"}">${label}<input data-f="${f}" class="${cls}" type="${type}" ${extra} ${ph} value="${esc(it[f])}"
+    oninput="update(${it.id}, '${f}', this.value)"></label>`;
+}
+
+function render() {
+  const box = $("items");
+  if (!items.length) { box.innerHTML = mode === "sale"
+    ? '<div class="empty">No items yet. Add a firearm or accessory, a service, a transfer fee, or shipping below.</div>'
+    : '<div class="empty">No items yet. Add each firearm or accessory you are buying below.</div>'; renderTotals(); return; }
+  box.innerHTML = items.map(it => {
+    let body = "";
+    if (it.kind === "product") {
+      const isFirearm = it.type === "Firearm";
+      body = `<div class="row">
+          <label style="flex:0 0 140px">Type<select onchange="update(${it.id}, 'type', this.value)">
+            <option ${isFirearm ? "selected" : ""}>Firearm</option><option ${!isFirearm ? "selected" : ""}>Accessory</option></select></label>
+          ${field(it, "description", "Description", { flex: "3 1 260px", placeholder: isFirearm ? "e.g. Sig Sauer MPX K 9mm" : "e.g. Magazine, suppressor mount" })}
+        </div>
+        <div class="row" style="margin-top:8px">
+          ${isFirearm ? field(it, "serial", "Serial #", { flex: "2 1 160px" }) : ""}
+          ${field(it, "qty", "Qty", { type: "number", flex: "0 0 80px" })}
+          ${field(it, "price", "Unit price ($)", { type: "number", money: true, flex: "1 1 120px" })}
+        </div>
+        ${isFirearm && mode === "sale" ? `<label class="check"><input type="checkbox" ${it.transfer ? "checked" : ""} onchange="update(${it.id}, 'transfer', this.checked)">
+           Add transfer fee (${money(TRANSFER_FEE)} per firearm)</label>` : ""}`;
+    } else if (it.kind === "service") {
+      body = `<div class="row">
+          ${field(it, "description", "Service", { flex: "3 1 260px", placeholder: "e.g. Oregon CCW class, gunsmithing, cleaning" })}
+          ${field(it, "qty", "Qty", { type: "number", flex: "0 0 80px" })}
+          ${field(it, "price", "Unit price ($)", { type: "number", money: true, flex: "1 1 120px" })}
+        </div>`;
+    } else if (it.kind === "transfer") {
+      body = `<div class="row">
+          ${field(it, "description", "Firearm(s) transferred", { flex: "3 1 260px", placeholder: "e.g. Glock 19 Gen 5, S/N ABC123" })}
+          ${field(it, "qty", "# of firearms", { type: "number", flex: "0 0 110px" })}
+        </div>
+        <div class="hint">${money(TRANSFER_FEE)} per firearm. Use this for transfers of firearms bought elsewhere.</div>`;
+    } else {
+      body = `<div class="row">
+          ${field(it, "description", "Description", { flex: "3 1 220px", placeholder: "e.g. UPS 2-day, 14 lbs" })}
+          ${field(it, "qty", "# of items shipped", { type: "number", flex: "0 0 130px" })}
+          ${field(it, "override", "Override total ($)", { type: "number", money: true, flex: "1 1 130px", placeholder: "optional" })}
+        </div>
+        <div class="hint">${money(SHIPPING_FEE)} per item unless you enter an override total.</div>`;
+    }
+    const title = { product: "Firearm / Accessory", service: "Service", transfer: "Transfer Fee", shipping: "Shipping" }[it.kind];
+    return `<div class="item ${it.kind}" data-id="${it.id}">
+      <div class="item-head"><strong>${title}</strong><button class="remove" type="button" onclick="removeItem(${it.id})">Remove</button></div>
+      ${body}
+      <div class="line-total" id="lt-${it.id}"></div>
+    </div>`;
+  }).join("");
+  renderTotals();
+}
+
+function computeTotals() {
+  let subtotal = 0;
+  items.forEach(it => { subtotal += lineTotal(it) + autoTransferTotal(it); });
+  const discount = mode === "sale" ? num($("discount").value) : 0;
+  const deposit = mode === "sale" ? num($("deposit").value) : 0;
+  const total = Math.max(0, subtotal - discount);
+  return { subtotal, discount, total, deposit, balance: total - deposit };
+}
+
+function renderTotals() {
+  items.forEach(it => {
+    const el = $("lt-" + it.id);
+    if (!el) return;
+    const auto = autoTransferTotal(it);
+    el.textContent = auto ? `${money(lineTotal(it))} + ${money(auto)} transfer` : money(lineTotal(it));
+  });
+  const t = computeTotals();
+  if (mode === "purchase") { $("totals").innerHTML = `<tr class="grand"><td>Total paid to seller</td><td>${money(t.total)}</td></tr>`; return; }
+  let rows = `<tr><td>Subtotal</td><td>${money(t.subtotal)}</td></tr>`;
+  if (t.discount) rows += `<tr><td>Discount</td><td>(${money(t.discount)})</td></tr>`;
+  rows += `<tr class="grand"><td>Total</td><td>${money(t.total)}</td></tr>`;
+  if (t.deposit) rows += `<tr><td>Deposit / prepaid</td><td>(${money(t.deposit)})</td></tr><tr><td><strong>Balance due</strong></td><td><strong>${money(t.balance)}</strong></td></tr>`;
+  $("totals").innerHTML = rows;
+}
+
+// ---- PDF ------------------------------------------------------------------
+function formatDate(iso) {
+  if (!iso) return "";
+  const [y, m, d] = iso.split("-");
+  return `${m}-${d}-${y}`;
+}
+function fileDate(iso) {
+  const [y, m, d] = iso.split("-");
+  return `${parseInt(m)}-${parseInt(d)}-${y}`;
+}
+
+// The PDF's line items, with automatic transfer fees listed right after their firearm.
+function pdfLines() {
+  const rows = [];
+  items.forEach(it => {
+    const qty = Math.max(0, num(it.qty)) || 1;
+    if (it.kind === "product") {
+      let desc = it.description.trim();
+      if (it.type === "Firearm" && it.serial.trim()) desc += `\nSerial # ${it.serial.trim()}`;
+      rows.push([String(qty), it.type, desc, money(num(it.price)), money(lineTotal(it))]);
+      if (autoTransferTotal(it)) {
+        rows.push([String(qty), "Transfer Fee", "Transfer / background check" + (it.description.trim() ? `\n${it.description.trim()}` : ""), money(TRANSFER_FEE), money(autoTransferTotal(it))]);
+      }
+    } else if (it.kind === "service") {
+      rows.push([String(qty), "Service", it.description.trim(), money(num(it.price)), money(lineTotal(it))]);
+    } else if (it.kind === "transfer") {
+      rows.push([String(qty), "Transfer Fee", "Transfer / background check" + (it.description.trim() ? `\n${it.description.trim()}` : ""), money(TRANSFER_FEE), money(lineTotal(it))]);
+    } else {
+      const overridden = it.override !== "" && it.override != null;
+      const desc = it.description.trim() || `${qty} item${qty === 1 ? "" : "s"} shipped`;
+      rows.push([String(qty), "Shipping", desc, overridden ? "At cost" : money(SHIPPING_FEE), money(lineTotal(it))]);
+    }
+  });
+  return rows;
+}
+
+function validate() {
+  const problems = [];
+  if (!$("name").value.trim()) problems.push("Enter the customer's name.");
+  if (!$("number").value.trim()) problems.push("Enter a receipt number.");
+  if (!$("date").value) problems.push("Pick a date.");
+  if (!items.length) problems.push("Add at least one item.");
+  items.forEach((it, i) => {
+    if ((it.kind === "product" || it.kind === "service") && !it.description.trim()) problems.push(`Item ${i + 1}: add a description.`);
+    if ((it.kind === "product" || it.kind === "service") && it.price === "") problems.push(`Item ${i + 1}: enter a price.`);
+    if (num(it.qty) <= 0) problems.push(`Item ${i + 1}: quantity must be at least 1.`);
+  });
+  return problems;
+}
+
+function buildPdf() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: "pt", format: "letter" });
+  const NAVY = [68, 98, 126], LIGHT = [214, 224, 234], TEXT = [31, 42, 53];
+  const W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight();
+  const L = 40, R = W - 40;
+
+  // Header
+  if (logoDataUrl) doc.addImage(logoDataUrl, "PNG", L, 40, 240, 240 * 231 / 1000);
+  doc.setFont("helvetica", "bold"); doc.setTextColor(...NAVY);
+  if (mode === "purchase") { doc.setFontSize(30); doc.text("Purchase Receipt", R, 70, { align: "right" }); }
+  else { doc.setFontSize(34); doc.text("Sales Receipt", R, 70, { align: "right" }); }
+
+  doc.setFontSize(10);
+  doc.text(BUSINESS.tagline, L, 128);
+  doc.text(`Date: ${formatDate($("date").value)}`, R, 116, { align: "right" });
+  doc.text(`Receipt # ${$("number").value.trim()}`, R, 130, { align: "right" });
+
+  // Sold to / ship to
+  let y = 158;
+  const block = (label, lines, x) => {
+    doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.setTextColor(...NAVY);
+    doc.text(label, x, y);
+    doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(...TEXT);
+    let yy = y + 14;
+    lines.filter(Boolean).forEach(line => { doc.text(line, x, yy); yy += 13; });
+    return yy;
+  };
+  const soldLines = [$("name").value.trim(), ...$("address").value.split("\n").map(s => s.trim()), $("phone").value.trim(), $("email").value.trim()];
+  if (mode === "purchase" && $("idnum").value.trim()) soldLines.push("ID: " + $("idnum").value.trim());
+  let endY = block(mode === "purchase" ? "PURCHASED FROM" : "SOLD TO", soldLines, L);
+  if (mode === "sale" && $("shipToggle").checked && $("shipto").value.trim()) {
+    endY = Math.max(endY, block("SHIP TO", $("shipto").value.split("\n").map(s => s.trim()), W / 2 + 10));
+  }
+
+  // Payment
+  const tableStyles = {
+    theme: "grid",
+    headStyles: { fillColor: NAVY, textColor: 255, fontStyle: "bold", halign: "center", fontSize: 9.5 },
+    styles: { fontSize: 9.5, textColor: TEXT, lineColor: [255, 255, 255], lineWidth: 1, cellPadding: 5 },
+    bodyStyles: { fillColor: LIGHT },
+    alternateRowStyles: { fillColor: [235, 240, 245] },
+    margin: { left: L, right: W - R },
+  };
+  doc.autoTable({
+    ...tableStyles,
+    startY: endY + 8,
+    head: [[mode === "purchase" ? "Paid to Seller By" : "Payment Method", "Check / Ref No."]],
+    body: [[$("payment").value, $("checkno").value.trim()]],
+  });
+
+  // Items
+  doc.autoTable({
+    ...tableStyles,
+    startY: doc.lastAutoTable.finalY + 16,
+    head: [["Qty", "Item", "Description", "Unit Price", "Line Total"]],
+    body: pdfLines(),
+    columnStyles: {
+      0: { cellWidth: 40, halign: "center" },
+      1: { cellWidth: 85 },
+      2: { cellWidth: "auto" },
+      3: { cellWidth: 75, halign: "right" },
+      4: { cellWidth: 80, halign: "right" },
+    },
+  });
+
+  // Totals
+  const t = computeTotals();
+  const totalRows = mode === "purchase" ? [["Total Paid", money(t.total)]] : [["Subtotal", money(t.subtotal)]];
+  if (mode === "sale") {
+  if (t.discount) totalRows.push(["Discount", `(${money(t.discount)})`]);
+  totalRows.push(["Total", money(t.total)]);
+  if (t.deposit) { totalRows.push(["Deposit or Prepay", `(${money(t.deposit)})`]); totalRows.push(["Balance Due", money(t.balance)]); }
+  }
+  let ty = doc.lastAutoTable.finalY + 18;
+  if (ty + totalRows.length * 18 + 60 > H - 70) { doc.addPage(); ty = 60; }
+  totalRows.forEach(([label, value], i) => {
+    const strong = label === "Total" || label === "Balance Due" || label === "Total Paid";
+    if (strong) { doc.setFillColor(...LIGHT); doc.rect(R - 200, ty - 12, 200, 18, "F"); }
+    doc.setFont("helvetica", "bold"); doc.setFontSize(strong ? 11 : 10); doc.setTextColor(...NAVY);
+    doc.text(label, R - 90, ty, { align: "right" });
+    doc.setTextColor(...TEXT);
+    doc.text(value, R - 6, ty, { align: "right" });
+    ty += 20;
+  });
+
+  // Notes
+  const notes = $("notes").value.trim();
+  if (notes) {
+    ty += 6;
+    doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.setTextColor(...NAVY);
+    doc.text("NOTES", L, ty);
+    doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(...TEXT);
+    const lines = doc.splitTextToSize(notes, R - L);
+    doc.text(lines, L, ty + 14);
+    ty += 14 + lines.length * 12;
+  }
+
+  // Purchase: seller's certification and signature lines
+  if (mode === "purchase") {
+    ty += 18;
+    if (ty + 90 > H - 70) { doc.addPage(); ty = 60; }
+    doc.setFont("helvetica", "normal"); doc.setFontSize(9.5); doc.setTextColor(...TEXT);
+    const cert = "The seller certifies that they are the lawful owner of the item(s) listed above, that the item(s) are free of any liens or claims, "
+      + "and that they are legally permitted to sell them. The seller acknowledges receipt of the total paid shown above.";
+    const certLines = doc.splitTextToSize(cert, R - L);
+    doc.text(certLines, L, ty);
+    ty += certLines.length * 12 + 40;
+    const sig = (label, x, w) => {
+      doc.setDrawColor(...NAVY); doc.setLineWidth(0.8); doc.line(x, ty, x + w, ty);
+      doc.setFont("helvetica", "bold"); doc.setFontSize(8.5); doc.setTextColor(...NAVY);
+      doc.text(label, x, ty + 12);
+    };
+    sig("Seller signature", L, 190); sig("Date", L + 202, 66);
+    sig("Just Shoot Me, LLC", 330, 160); sig("Date", 502, R - 502);
+  }
+
+  // Footer on every page
+  const pages = doc.getNumberOfPages();
+  for (let p = 1; p <= pages; p++) {
+    doc.setPage(p);
+    doc.setFont("helvetica", "bold"); doc.setTextColor(...NAVY);
+    doc.setFontSize(11); doc.text("Thank you for your business!", W / 2, H - 58, { align: "center" });
+    doc.setFontSize(9);
+    doc.text(`${BUSINESS.name}   ${BUSINESS.address}   ${BUSINESS.phone}   ${BUSINESS.email}`, W / 2, H - 40, { align: "center" });
+  }
+  return doc;
+}
+
+function fileName() {
+  const name = $("name").value.trim().replace(/\s+/g, " ");
+  return `${name} ${mode === "purchase" ? "Purchase Receipt" : "Receipt"} ${fileDate($("date").value)} ${$("number").value.trim()}.pdf`;
+}
+
+function setStatus(html, cls) { $("status").className = "status " + (cls || ""); $("status").innerHTML = html; }
+
+function checkOrReport() {
+  const problems = validate();
+  if (problems.length) { setStatus(problems.join("<br>"), "err"); return false; }
+  return true;
+}
+
+function previewReceipt() {
+  if (!checkOrReport()) return;
+  window.open(buildPdf().output("bloburl"), "_blank");
+  setStatus("Preview opened in a new tab. Nothing has been saved yet.");
+}
+
+function saveReceipt() {
+  if (!checkOrReport()) return;
+  const number = $("number").value.trim();
+  const existing = receiptLog.find(e => e.number === number);
+  if (existing && !existing.data && !confirm(`${number} is already in the log (from an imported PDF). Replace that log entry with this receipt?`)) return;
+  if (existing && existing.data && existing.name !== $("name").value.trim()
+      && !confirm(`${number} is already in the log for ${existing.name}. Replace it with this receipt?`)) return;
+  try {
+    const file = fileName();
+    buildPdf().save(file);
+    const t = computeTotals();
+    const entry = {
+      number, type: mode, date: $("date").value, name: $("name").value.trim(),
+      total: Math.round(t.total * 100) / 100, file, created: new Date().toISOString(), data: snapshot(),
+    };
+    receiptLog = receiptLog.filter(e => e.number !== number);
+    receiptLog.push(entry);
+    const stored = writeLog();
+    renderLog();
+    setStatus(`Downloaded <strong>${esc(file)}</strong> and added it to the log.`
+      + (stored ? "" : "<br>The log couldn't be saved in this browser (private browsing?). Use Back up log so it isn't lost."), stored ? "ok" : "err");
+  } catch (e) {
+    setStatus("Couldn't make the PDF: " + esc(e.message), "err");
+  }
+}
+
+// ---- Receipt log (kept in this browser's localStorage) -----------------------
+const LOG_KEY = "jsmReceiptLog.v1";
+let receiptLog = [];
+
+function readLog() {
+  try { const v = JSON.parse(localStorage.getItem(LOG_KEY) || "[]"); return Array.isArray(v) ? v : []; } catch (e) { return []; }
+}
+function writeLog() {
+  try { localStorage.setItem(LOG_KEY, JSON.stringify(receiptLog)); return true; } catch (e) { return false; }
+}
+
+// Everything needed to rebuild a receipt later.
+function snapshot() {
+  const f = {};
+  ["number", "date", "payment", "checkno", "name", "phone", "email", "idnum", "address", "shipto", "discount", "deposit", "notes"].forEach(id => f[id] = $(id).value);
+  f.shipToggle = $("shipToggle").checked;
+  return { mode, fields: f, items: JSON.parse(JSON.stringify(items)) };
+}
+
+function applySnapshot(s) {
+  mode = s.mode;
+  document.body.classList.toggle("purchase", mode === "purchase");
+  document.querySelectorAll("#mode button").forEach(b => b.classList.toggle("active", b.dataset.mode === mode));
+  applyModeLabels();
+  Object.entries(s.fields).forEach(([id, v]) => { if (id === "shipToggle") $(id).checked = !!v; else if ($(id)) $(id).value = v ?? ""; });
+  $("shipBox").style.display = $("shipToggle").checked ? "" : "none";
+  items = JSON.parse(JSON.stringify(s.items));
+  nextId = items.reduce((m, i) => Math.max(m, i.id), 0) + 1;
+  render();
+}
+
+function openFromLog(number) {
+  const e = receiptLog.find(x => x.number === number);
+  if (!e || !e.data) return;
+  if (items.length && !confirm(`Replace the receipt on screen with ${number}?`)) return;
+  applySnapshot(e.data);
+  setStatus(`Opened <strong>${esc(number)}</strong>. Click Download PDF to get it again (any changes you make update the log).`, "ok");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function deleteFromLog(number) {
+  if (!confirm(`Remove ${number} from the log? This doesn't touch any PDF you already downloaded.`)) return;
+  receiptLog = receiptLog.filter(e => e.number !== number);
+  writeLog(); renderLog();
+}
+
+function sortedLog() {
+  return receiptLog.slice().sort((a, b) => (b.date || "").localeCompare(a.date || "") || (b.number || "").localeCompare(a.number || ""));
+}
+
+function renderLog() {
+  const q = $("logSearch").value.trim().toLowerCase();
+  const type = $("logType").value;
+  const list = sortedLog().filter(e => (!type || e.type === type) && (!q || `${e.name} ${e.number}`.toLowerCase().includes(q)));
+  $("logCount").textContent = receiptLog.length ? `(${receiptLog.length})` : "";
+  if (!list.length) { $("log").innerHTML = `<li class="muted">${receiptLog.length ? "No matches." : "No receipts yet. Each PDF you download is listed here."}</li>`; return; }
+  $("log").innerHTML = list.map(e => {
+    const n = esc(JSON.stringify(e.number));
+    return `<li>
+      <div class="l1"><span><span class="tag ${e.type === "purchase" ? "p" : ""}">${e.type === "purchase" ? "BUY" : "SALE"}</span>${esc(e.number)}</span>
+        <span class="amt">${e.total == null ? "" : money(e.total)}</span></div>
+      <div class="l2"><span title="${esc(e.name)}">${esc(e.name)} · ${esc(formatDate(e.date))}</span>
+        <span class="acts">${e.data ? `<button type="button" onclick='openFromLog(${n})'>Open</button>` : '<span title="Imported from a PDF file name">imported</span>'}<button type="button" class="del" onclick='deleteFromLog(${n})'>Remove</button></span></div>
+    </li>`;
+  }).join("");
+}
+
+function nextNumber(kind) {
+  const prefix = kind === "purchase" ? "JSMP" : "JSM";
+  const yy = new Date().toLocaleDateString("en-CA").slice(2, 4);
+  const re = new RegExp(`^${prefix}(\\d{2})-(\\d{4})$`);
+  let highest = 0;
+  receiptLog.forEach(e => { const m = re.exec(e.number || ""); if (m && m[1] === yy) highest = Math.max(highest, parseInt(m[2], 10)); });
+  return `${prefix}${yy}-${String(highest + 1).padStart(4, "0")}`;
+}
+
+function download(name, text, type) {
+  const url = URL.createObjectURL(new Blob([text], { type }));
+  const a = document.createElement("a"); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function exportCsv() {
+  if (!receiptLog.length) { setStatus("The log is empty.", "err"); return; }
+  const q = v => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  const rows = [["Receipt #", "Type", "Date", "Name", "Total", "File name", "Logged"]].concat(
+    sortedLog().map(e => [e.number, e.type === "purchase" ? "Purchase" : "Sale", formatDate(e.date), e.name, e.total == null ? "" : e.total.toFixed(2), e.file, e.created ? new Date(e.created).toLocaleString() : ""]));
+  download(`JSM Receipt Log ${new Date().toLocaleDateString("en-CA")}.csv`, rows.map(r => r.map(q).join(",")).join("\r\n"), "text/csv");
+}
+
+function backupLog() {
+  if (!receiptLog.length) { setStatus("The log is empty.", "err"); return; }
+  download(`JSM Receipt Log Backup ${new Date().toLocaleDateString("en-CA")}.json`, JSON.stringify({ app: "JSM Receipt Maker", version: 1, receipts: receiptLog }, null, 1), "application/json");
+  setStatus("Backup downloaded. Keep it somewhere safe; use Restore / import to load it into any browser.", "ok");
+}
+
+// Accepts a log backup (.json) and/or receipt PDFs. PDFs are added by file name only, e.g.
+// "Reed Harmon Receipt 10-27-2026 JSM26-0001.pdf" or "Sam Seller Purchase Receipt 10-28-2026 JSMP26-0001.pdf".
+async function importFiles(files) {
+  let added = 0, skipped = 0, bad = [];
+  const have = new Set(receiptLog.map(e => e.number));
+  const add = e => { if (!e.number || have.has(e.number)) { skipped++; return; } receiptLog.push(e); have.add(e.number); added++; };
+  for (const f of files) {
+    if (/\.json$/i.test(f.name)) {
+      try {
+        const data = JSON.parse(await f.text());
+        const list = Array.isArray(data) ? data : data.receipts;
+        if (!Array.isArray(list)) throw new Error();
+        list.forEach(add);
+      } catch (e) { bad.push(f.name); }
+    } else {
+      const m = /^(.*?)\s+(Purchase Receipt|Receipt)\s+(\d{1,2})-(\d{1,2})-(\d{4})\s+(JSMP?\d{2}-\d{4})(?:\s*\(\d+\))?\.pdf$/i.exec(f.name);
+      if (!m) { bad.push(f.name); continue; }
+      const number = m[6].toUpperCase();
+      add({ number, type: number.startsWith("JSMP") ? "purchase" : "sale", date: `${m[5]}-${m[3].padStart(2, "0")}-${m[4].padStart(2, "0")}`,
+            name: m[1].trim(), total: null, file: f.name, created: new Date().toISOString(), imported: true });
+    }
+  }
+  writeLog(); renderLog();
+  if (!items.length) $("number").value = nextNumber(mode);
+  let msg = `Added ${added} receipt${added === 1 ? "" : "s"} to the log.`;
+  if (skipped) msg += ` ${skipped} already there.`;
+  if (bad.length) msg += `<br>Couldn't read: ${bad.map(esc).join(", ")}`;
+  setStatus(msg, bad.length ? "err" : "ok");
+}
+
+function newReceipt() {
+  if (items.length && !confirm("Clear this receipt and start a new one?")) return;
+  items = [];
+  ["name", "phone", "email", "idnum", "address", "shipto", "checkno", "discount", "deposit", "notes"].forEach(id => $(id).value = "");
+  $("shipToggle").checked = false; $("shipBox").style.display = "none";
+  $("payment").value = "Cash";
+  $("date").value = new Date().toLocaleDateString("en-CA");
+  setStatus("");
+  loadNumber();
+  render();
+}
+
+function applyModeLabels() {
+  const m = mode;
+  $("partyTitle").textContent = m === "purchase" ? "Purchased from" : "Sold to";
+  $("paymentLabel").textContent = m === "purchase" ? "Paid to seller by" : "Payment method";
+  $("nameLabel").textContent = m === "purchase" ? "Seller name" : "Customer name";
+  $("adjTitle").textContent = m === "purchase" ? "Notes" : "Adjustments & notes";
+}
+
+function setMode(m) {
+  if (m === mode) return;
+  const fees = items.filter(i => i.kind !== "product");
+  if (m === "purchase" && fees.length && !confirm("Purchase receipts only have firearms and accessories. Remove the service, transfer and shipping lines?")) return;
+  mode = m;
+  if (m === "purchase") items = items.filter(i => i.kind === "product");
+  items.forEach(i => { if (i.kind === "product") i.transfer = m === "sale" && i.type === "Firearm"; });
+  document.body.classList.toggle("purchase", m === "purchase");
+  document.querySelectorAll("#mode button").forEach(b => b.classList.toggle("active", b.dataset.mode === m));
+  applyModeLabels();
+  setStatus("");
+  loadNumber();
+  render();
+}
+
+function loadNumber() { $("number").value = nextNumber(mode); }
+
+async function loadLogo() {
+  const blob = await (await fetch("logo.png")).blob();
+  logoDataUrl = await new Promise(res => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.readAsDataURL(blob); });
+}
+
+$("shipToggle").addEventListener("change", e => { $("shipBox").style.display = e.target.checked ? "" : "none"; });
+["discount", "deposit"].forEach(id => $(id).addEventListener("input", renderTotals));
+
+$("date").value = new Date().toLocaleDateString("en-CA");
+receiptLog = readLog();
+loadLogo();
+loadNumber();
+renderLog();
+render();
+</script>
+</body>
+</html>

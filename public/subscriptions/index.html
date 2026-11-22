@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Subscriptions · Emmerson Tools</title>
+<meta name="description" content="Track every subscription, see what you really spend, and get warned before renewals and trials charge you.">
+<meta name="theme-color" content="#f6f5f1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#15171c" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Subscriptions">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f766e'/%3E%3Cpath d='M20 34a12 12 0 1 0 4-9' fill='none' stroke='white' stroke-width='5' stroke-linecap='round'/%3E%3Cpath d='M18 20v8h8' fill='none' stroke='white' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#f6f5f1;--panel:#ffffff;--panel2:#efeee9;--ink:#15171c;--muted:#636673;--line:#e2e0d9;
+  --accent:#0f766e;--accent-ink:#ffffff;--accent-soft:#d7efe9;
+  --warn:#b45309;--warn-soft:#fdf0d8;--danger:#b42318;--danger-soft:#fde4e1;--info:#1d4ed8;--info-soft:#e0e9ff;
+  --radius:14px;--shadow:0 1px 2px rgba(20,20,30,.05),0 4px 16px rgba(20,20,30,.04);
+  --font:ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#15171c;--panel:#1d2027;--panel2:#252932;--ink:#eceae4;--muted:#9a9ca6;--line:#2f333d;
+  --accent:#2dd4bf;--accent-ink:#06201d;--accent-soft:#123b37;
+  --warn:#f5b454;--warn-soft:#3a2c14;--danger:#f8877c;--danger-soft:#3d1d1b;--info:#8fb0ff;--info-soft:#1c2747;
+  --shadow:none;
+}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--accent)}
+.num{font-variant-numeric:tabular-nums}
+.wrap{max-width:1080px;margin:0 auto;padding:20px 20px 110px}
+header.top{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.logo{width:34px;height:34px;border-radius:9px;background:var(--accent);display:grid;place-items:center;flex:none}
+.logo svg{width:20px;height:20px}
+header.top h1{font-size:19px;margin:0;letter-spacing:-.01em}
+header.top .sub{color:var(--muted);font-size:13px}
+header.top .spacer{flex:1}
+nav.tabs{display:flex;gap:4px;background:var(--panel2);padding:4px;border-radius:12px;margin-bottom:20px;overflow-x:auto}
+nav.tabs button{flex:1;border:0;background:none;padding:8px 12px;border-radius:9px;cursor:pointer;color:var(--muted);font-weight:550;white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:6px}
+nav.tabs button.on{background:var(--panel);color:var(--ink);box-shadow:var(--shadow)}
+nav.tabs svg{width:16px;height:16px}
+.badge{background:var(--danger);color:#fff;border-radius:99px;font-size:11px;padding:0 6px;min-width:18px;text-align:center;line-height:18px}
+@media (max-width:720px){
+  nav.tabs{position:fixed;left:0;right:0;bottom:0;margin:0;border-radius:0;z-index:20;padding:6px 6px calc(6px + env(safe-area-inset-bottom));background:var(--panel);border-top:1px solid var(--line)}
+  nav.tabs button{flex-direction:column;gap:2px;font-size:11px;padding:6px 4px}
+  nav.tabs button.on{box-shadow:none;background:var(--accent-soft);color:var(--accent)}
+  nav.tabs svg{width:20px;height:20px}
+  .hide-sm{display:none!important}
+  header.top{gap:8px}header.top .sub{display:none}#addBtn span{display:none}#addBtn{padding:8px 10px}
+}
+.btn{border:1px solid var(--line);background:var(--panel);padding:8px 14px;border-radius:10px;cursor:pointer;font-weight:550;display:inline-flex;align-items:center;gap:6px;text-decoration:none;color:var(--ink)}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.danger{color:var(--danger)}
+.btn.sm{padding:5px 10px;font-size:13px;border-radius:8px}
+.btn.ghost{border-color:transparent;background:none}
+.btn svg{width:16px;height:16px}
+.grid{display:grid;gap:14px}
+.grid>*{min-width:0}
+.alert>div{flex:1;min-width:0}
+.kpis{grid-template-columns:repeat(4,1fr)}
+@media (max-width:860px){.kpis{grid-template-columns:repeat(2,1fr)}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}
+.card h2{font-size:15px;margin:0 0 12px;display:flex;align-items:center;gap:8px}
+.card h2 .muted{font-weight:400}
+.card h2 svg{width:18px;height:18px;flex:none;color:var(--muted)}
+.kpi .label{color:var(--muted);font-size:13px}
+.kpi .value{font-size:26px;font-weight:700;letter-spacing:-.02em;margin-top:2px}
+.kpi .foot{color:var(--muted);font-size:12.5px;margin-top:2px}
+.muted{color:var(--muted)}
+.two{grid-template-columns:1.25fr 1fr;margin-top:14px}
+@media (max-width:860px){.two{grid-template-columns:1fr}}
+.meter{height:8px;border-radius:99px;background:var(--panel2);overflow:hidden;margin-top:8px}
+.meter>i{display:block;height:100%;background:var(--accent);border-radius:99px}
+.meter.over>i{background:var(--danger)}
+.alert{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:10px;margin-bottom:8px;font-size:14px}
+.alert:last-child{margin-bottom:0}
+.alert .ic{width:18px;height:18px;flex:none;margin-top:1px}
+.alert b{font-weight:650}
+.alert.danger{background:var(--danger-soft)}.alert.danger .ic{color:var(--danger)}
+.alert.warn{background:var(--warn-soft)}.alert.warn .ic{color:var(--warn)}
+.alert.info{background:var(--info-soft)}.alert.info .ic{color:var(--info)}
+.alert .act{margin-left:auto;white-space:nowrap}
+.list{display:flex;flex-direction:column}
+.row{display:flex;align-items:center;gap:12px;padding:11px 4px;border-bottom:1px solid var(--line);cursor:pointer}
+.row:last-child{border-bottom:0}
+.row:hover{background:color-mix(in srgb,var(--panel2) 50%,transparent)}
+.av{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;font-weight:700;font-size:14px;flex:none;color:#fff}
+.row .main{flex:1;min-width:0}
+.row .name{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .meta{color:var(--muted);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .amt{text-align:right;font-weight:650}
+.row .amt small{display:block;font-weight:400;color:var(--muted);font-size:12px}
+.pill{display:inline-block;font-size:11.5px;font-weight:600;padding:1px 7px;border-radius:99px;background:var(--panel2);color:var(--muted);margin-left:6px;vertical-align:1px}
+.pill.trial{background:var(--info-soft);color:var(--info)}
+.pill.paused{background:var(--warn-soft);color:var(--warn)}
+.pill.cancelled{background:var(--danger-soft);color:var(--danger)}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
+.toolbar .search{flex:1;min-width:180px}
+input[type=text],input[type=number],input[type=date],input[type=url],input[type=search],select,textarea{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:var(--panel);outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+select.inline{width:auto}
+label.f{display:block;font-size:13px;color:var(--muted);font-weight:550}
+label.f>span{display:block;margin-bottom:4px}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form .full{grid-column:1/-1}
+@media (max-width:560px){.form{grid-template-columns:1fr}}
+.check{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ink)}
+.check input{width:18px;height:18px;accent-color:var(--accent)}
+.seg{display:flex;gap:4px;background:var(--panel2);border-radius:10px;padding:3px}
+.seg button{flex:1;border:0;background:none;padding:6px 8px;border-radius:8px;cursor:pointer;color:var(--muted);font-size:13px;font-weight:550}
+.seg button.on{background:var(--panel);color:var(--ink);box-shadow:var(--shadow)}
+dialog{border:0;border-radius:18px;padding:0;width:min(620px,calc(100vw - 24px));background:var(--panel);color:var(--ink);box-shadow:0 20px 60px rgba(0,0,0,.25)}
+dialog::backdrop{background:rgba(10,12,16,.45)}
+.dlg-h{display:flex;align-items:center;padding:16px 18px;border-bottom:1px solid var(--line)}
+.dlg-h h3{margin:0;font-size:17px;flex:1}
+.dlg-b{padding:18px;max-height:70vh;overflow:auto}
+.dlg-f{display:flex;gap:8px;padding:14px 18px;border-top:1px solid var(--line);justify-content:flex-end}
+.dlg-f .left{margin-right:auto}
+.bars .b{display:grid;grid-template-columns:130px 1fr 80px;gap:10px;align-items:center;margin-bottom:9px;font-size:14px}
+.bars .track{height:10px;background:var(--panel2);border-radius:99px;overflow:hidden}
+.bars .track i{display:block;height:100%;border-radius:99px}
+.bars .v{text-align:right;font-weight:600}
+.cols{display:flex;align-items:flex-end;gap:6px;height:170px;padding-top:10px}
+.cols .c{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end}
+.cols .c i{display:block;width:100%;max-width:36px;background:var(--accent);border-radius:6px 6px 2px 2px;min-height:2px;opacity:.85}
+.cols .c span{font-size:11px;color:var(--muted)}
+.cols .c em{font-style:normal;font-size:10.5px;color:var(--muted)}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal .dow{font-size:12px;color:var(--muted);text-align:center;padding:4px 0;font-weight:600}
+.cal .d{min-height:86px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px;font-size:12px;overflow:hidden}
+.cal .d.out{opacity:.4}
+.cal .d.today{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.cal .d .n{font-weight:650;margin-bottom:3px}
+.cal .ev{background:var(--accent-soft);color:var(--ink);border-radius:5px;padding:1px 5px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.cal .ev.trial{background:var(--info-soft)}
+.cal .tot{color:var(--muted);font-size:11px;margin-top:2px}
+@media (max-width:560px){.cal .d{min-height:58px;padding:4px}.cal .ev{font-size:10px;padding:0 3px}}
+.empty{text-align:center;padding:40px 16px}
+.empty h3{margin:10px 0 6px;font-size:18px}
+.empty p{color:var(--muted);max-width:440px;margin:0 auto 16px}
+.empty .ill{width:64px;height:64px;margin:0 auto;border-radius:18px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center}
+.empty .ill svg{width:32px;height:32px}
+table.t{width:100%;border-collapse:collapse;font-size:14px}
+table.t th,table.t td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left}
+table.t th{color:var(--muted);font-weight:600;font-size:12.5px}
+table.t td.r,table.t th.r{text-align:right}
+.drop{border:2px dashed var(--line);border-radius:var(--radius);padding:28px;text-align:center;color:var(--muted);cursor:pointer}
+.drop.over{border-color:var(--accent);background:var(--accent-soft)}
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:550;opacity:0;transition:.2s;pointer-events:none;z-index:50}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.stars{display:flex;gap:4px}
+.note{font-size:13px;color:var(--muted)}
+.section-gap{margin-top:14px}
+.hist{font-size:13px;color:var(--muted);margin-top:4px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--panel);border-radius:99px;padding:5px 12px;cursor:pointer;font-size:13.5px;color:var(--ink)}
+.chip.on{background:var(--accent-soft);border-color:var(--accent);font-weight:600}
+.chip.add{border-style:dashed;color:var(--muted)}
+.chip input{border:0;padding:0;width:110px;background:none;box-shadow:none}
+.chip .x{margin-left:6px;color:var(--muted);cursor:pointer}
+.sub-block{background:var(--panel2);border-radius:12px;padding:12px}
+.trio{display:grid;grid-template-columns:1.6fr 1fr 1fr;gap:8px}
+.steps{padding-left:20px;margin:0}.steps li{margin-bottom:18px}.steps li>b{display:block;margin-bottom:6px}
+.steps li:last-child{margin-bottom:0}
+.dlg-f{flex-wrap:wrap}
+select.ws{width:auto;padding:7px 10px;border-radius:10px}
+.saved{color:var(--accent);font-weight:650}
+.lbl-row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+footer.foot{color:var(--muted);font-size:12.5px;text-align:center;margin-top:28px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13a7 7 0 1 0 2.3-5.2"/><path d="M4 4v5h5"/></svg></div>
+    <div><h1>Subscriptions</h1><div class="sub">Emmerson Tools</div></div>
+    <div class="spacer"></div>
+    <select class="ws" id="wsSel" aria-label="Workspace"><option value="all">All</option><option value="personal">Personal</option><option value="business">Business</option></select>
+    <button class="btn primary" id="addBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span>Add</span></button>
+  </header>
+
+  <nav class="tabs" id="tabs"></nav>
+  <main id="view"></main>
+  <footer class="foot">Your data is stored only in this browser. Use Settings → Export to back it up or move it to another device.</footer>
+</div>
+
+<dialog id="dlg"></dialog>
+<dialog id="cdlg" style="width:min(420px,calc(100vw - 24px))"></dialog>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+'use strict';
+
+/* ---------- storage ---------- */
+const KEY='emmersontools.subscriptions.v1';
+const mem={};
+const store={
+  get(k){try{const v=localStorage.getItem(k);return v==null?mem[k]??null:v}catch(e){return mem[k]??null}},
+  set(k,v){mem[k]=v;try{localStorage.setItem(k,v)}catch(e){}}
+};
+const defaults={subs:[],savings:[],settings:{budget:0,alertDays:3,currency:'USD',notify:false,lastNotified:'',workspace:'all',people:[{id:'me',name:'You'}]}};
+let state;
+try{state=JSON.parse(store.get(KEY))||null}catch(e){state=null}
+if(!state)state=JSON.parse(JSON.stringify(defaults));
+state.settings=Object.assign({},defaults.settings,state.settings||{});
+state.subs=state.subs||[];state.savings=state.savings||[];
+if(!Array.isArray(state.settings.people)||!state.settings.people.some(p=>p.id==='me'))state.settings.people=[{id:'me',name:'You'}].concat(state.settings.people||[]);
+function save(){store.set(KEY,JSON.stringify(state))}
+
+/* ---------- constants ---------- */
+const CYCLES={weekly:{label:'Weekly',per:'wk',m:52/12},monthly:{label:'Monthly',per:'mo',m:1},quarterly:{label:'Quarterly',per:'qtr',m:1/3},yearly:{label:'Yearly',per:'yr',m:1/12}};
+const CATS=['Streaming','Music','Software','Cloud storage','News & reading','Fitness & health','Gaming','Shopping & delivery','Education','Utilities & phone','Finance','Other'];
+const CAT_COLORS=['#0f766e','#7c3aed','#2563eb','#0891b2','#b45309','#16a34a','#db2777','#ea580c','#4f46e5','#64748b','#0d9488','#78716c'];
+const OVERLAP_CATS=['Streaming','Music','Cloud storage','News & reading'];
+const USAGE=['Unrated','Rarely','Sometimes','Often'];
+const DIRECTORY=[
+ ['Netflix','Streaming','https://www.netflix.com/cancelplan'],
+ ['Hulu','Streaming','https://secure.hulu.com/account'],
+ ['Disney+','Streaming','https://www.disneyplus.com/account'],
+ ['Max','Streaming','https://www.max.com/account'],
+ ['Paramount+','Streaming','https://www.paramountplus.com/account/'],
+ ['Peacock','Streaming','https://www.peacocktv.com/account'],
+ ['YouTube Premium','Streaming','https://www.youtube.com/paid_memberships'],
+ ['Spotify','Music','https://www.spotify.com/account/subscription/'],
+ ['Apple subscriptions (Music, TV+, iCloud+)','Music','https://apps.apple.com/account/subscriptions'],
+ ['Google Play subscriptions','Software','https://play.google.com/store/account/subscriptions'],
+ ['Google One','Cloud storage','https://one.google.com/settings'],
+ ['Dropbox','Cloud storage','https://www.dropbox.com/account/plan'],
+ ['Microsoft 365','Software','https://account.microsoft.com/services'],
+ ['Adobe Creative Cloud','Software','https://account.adobe.com/plans'],
+ ['Amazon Prime','Shopping & delivery','https://www.amazon.com/mc'],
+ ['Audible','News & reading','https://www.audible.com/account/overview'],
+ ['The New York Times','News & reading','https://myaccount.nytimes.com/seg/subscription'],
+ ['Claude','Software','https://claude.ai/settings/billing']
+];
+
+/* ---------- utils ---------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=()=>Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4);
+const pad=n=>String(n).padStart(2,'0');
+const iso=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const parseISO=s=>{if(!s)return null;const [y,m,d]=s.split('-').map(Number);if(!y||!m||!d)return null;return new Date(y,m-1,d)};
+const today=()=>{const d=new Date();d.setHours(0,0,0,0);return d};
+const daysBetween=(a,b)=>Math.round((b-a)/864e5);
+function fmt(n,dec){const c=state.settings.currency||'USD';try{return new Intl.NumberFormat(undefined,{style:'currency',currency:c,minimumFractionDigits:dec??2,maximumFractionDigits:dec??2}).format(n||0)}catch(e){return (n||0).toFixed(dec??2)}}
+const fmt0=n=>fmt(n,Math.abs(n)>=1000?0:2);
+const dateLabel=d=>d.toLocaleDateString(undefined,{month:'short',day:'numeric'});
+const dateLong=d=>d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+function addCycle(d,cycle,k=1){const n=new Date(d);
+  if(cycle==='weekly')n.setDate(n.getDate()+7*k);
+  else{const months=cycle==='monthly'?k:cycle==='quarterly'?3*k:12*k;const day=d.getDate();n.setDate(1);n.setMonth(n.getMonth()+months);const last=new Date(n.getFullYear(),n.getMonth()+1,0).getDate();n.setDate(Math.min(day,last))}
+  return n}
+function relDays(d){const n=daysBetween(today(),d);if(n===0)return'today';if(n===1)return'tomorrow';if(n===-1)return'yesterday';if(n<0)return Math.abs(n)+' days ago';return'in '+n+' days'}
+function hashColor(s){let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))|0;return CAT_COLORS[Math.abs(h)%CAT_COLORS.length]}
+const initials=n=>(n||'?').replace(/[^\p{L}\p{N} ]/gu,'').split(/\s+/).filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase()||'?';
+const normName=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'');
+function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove('show'),2200)}
+function askConfirm(msg,ok='Confirm',danger=false){return new Promise(res=>{const d=$('#cdlg');
+  d.innerHTML=`<div class="dlg-b" style="font-size:15px">${esc(msg)}</div><div class="dlg-f"><button class="btn" data-n>Cancel</button><button class="btn ${danger?'danger':'primary'}" data-y>${esc(ok)}</button></div>`;
+  const done=v=>{d.close();res(v)};d.querySelector('[data-n]').onclick=()=>done(false);d.querySelector('[data-y]').onclick=()=>done(true);d.oncancel=()=>res(false);d.showModal()})}
+function download(name,text,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)}
+
+const ICONS={
+ home:'<path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/>',
+ list:'<path d="M8 6h13M8 12h13M8 18h13"/><circle cx="3.5" cy="6" r="1"/><circle cx="3.5" cy="12" r="1"/><circle cx="3.5" cy="18" r="1"/>',
+ cal:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+ chart:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+ upload:'<path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v4h16v-4"/>',
+ gear:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
+ bell:'<path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/>',
+ alert:'<path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/>',
+ up:'<path d="M7 17 17 7M8 7h9v9"/>',
+ copy:'<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/>',
+ clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+ wallet:'<path d="M3 7a2 2 0 0 1 2-2h13v4"/><path d="M3 7v11a2 2 0 0 0 2 2h15V9H5a2 2 0 0 1-2-2z"/><circle cx="16" cy="14.5" r="1"/>',
+ ext:'<path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>',
+ x:'<path d="M6 6l12 12M18 6 6 18"/>',
+ sleep:'<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>'
+};
+const icon=(n,cls='')=>`<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS[n]}</svg>`;
+
+/* ---------- domain ---------- */
+const people=()=>state.settings.people;
+const others=()=>people().filter(p=>p.id!=='me');
+const personName=id=>id==='me'?'You':((people().find(p=>p.id===id)||{}).name||'Someone');
+const vis=s=>{const w=state.settings.workspace||'all';return w==='all'||(s.workspace||'personal')===w};
+const active=()=>state.subs.filter(s=>s.status==='active'&&vis(s));
+const share=s=>Array.isArray(s.members)&&s.members.length?s.members.length+1:Math.max(1,Number(s.shareCount)||1);
+const yourAmount=s=>(Number(s.amount)||0)/share(s);
+const monthly=s=>yourAmount(s)*CYCLES[s.cycle].m;
+const yearly=s=>monthly(s)*12;
+const altMonthly=s=>(Number(s.altPrice)||0)/share(s)*CYCLES[s.altCycle||'yearly'].m;
+const altSaving=s=>Number(s.altPrice)>0?(monthly(s)-altMonthly(s))*12:0;
+const seatsTracked=s=>Number(s.seats)>0&&s.seatsUsed!==''&&s.seatsUsed!=null&&!isNaN(Number(s.seatsUsed));
+const unusedSeatCost=s=>seatsTracked(s)&&Number(s.seatsUsed)<Number(s.seats)?yearly(s)*(1-Number(s.seatsUsed)/Number(s.seats)):0;
+function noticeDeadline(s){const nd=Number(s.noticeDays)||0,d=parseISO(s.nextDate);if(!nd||!d||s.autoRenew===false)return null;const x=new Date(d);x.setDate(x.getDate()-nd);return x}
+function logSaving(s,type,amt,note){if(!(amt>0))return;state.savings.push({id:uid(),date:iso(today()),subId:s.id,name:s.name,type,yearly:Math.round(amt*100)/100,note:note||''})}
+function savedTotal(){const ids=new Set(state.savings.filter(x=>x.type==='cancel').map(x=>x.subId));
+  return state.savings.reduce((a,x)=>a+x.yearly,0)+state.subs.filter(s=>s.status==='cancelled'&&!ids.has(s.id)).reduce((a,s)=>a+yearly(s),0)}
+function opportunities(){const out=[];active().forEach(s=>{const o=[];
+  if(Number(s.usage)===1)o.push({kind:'cancel',txt:'Rarely used — cancel it',v:yearly(s)});
+  const a=altSaving(s);if(a>=1)o.push({kind:'switch',txt:'Switch to '+(s.altLabel||'cheaper plan'),v:a});
+  const u=unusedSeatCost(s);if(u>0)o.push({kind:'seats',txt:(s.seats-s.seatsUsed)+' unused seats',v:u});
+  const h=s.priceHistory||[];if(h.length>1){const f=h[0].amount,l=h[h.length-1].amount,ld=parseISO(h[h.length-1].date);if(l>f&&ld&&daysBetween(ld,today())<=365)o.push({kind:'negotiate',txt:`Price up ${Math.round((l-f)/f*100)}% — negotiate`,v:(l-f)*CYCLES[s.cycle].m*12/share(s)})}
+  const dl=noticeDeadline(s);if(dl&&daysBetween(today(),dl)>=0&&daysBetween(today(),dl)<=45)o.push({kind:'negotiate',txt:'Negotiate before notice deadline',v:0});
+  if(o.length){o.sort((a,b)=>b.v-a.v);out.push({s,best:o[0],all:o})}});return out.sort((a,b)=>b.best.v-a.best.v)}
+
+function rollForward(){
+  const t=today();let changed=false;
+  state.subs.forEach(s=>{
+    if(s.status!=='active')return;
+    let d=parseISO(s.nextDate);if(!d)return;let guard=0;
+    while(d<t&&guard++<600){d=addCycle(d,s.cycle);changed=true}
+    if(changed)s.nextDate=iso(d);
+    if(s.trial&&s.trialEnd&&parseISO(s.trialEnd)<t){s.trial=false;s.trialConverted=s.trialEnd;changed=true}
+  });
+  if(changed)save();
+}
+function occurrences(s,from,to){
+  const out=[];if(s.status!=='active')return out;
+  let d=parseISO(s.nextDate);if(!d)return out;
+  // step back to cover ranges before nextDate (for calendar of current month)
+  const floor=s.trial?d:(parseISO(s.createdAt)||d);
+  let back=0;while(d>from&&back++<60){const p=addCycle(d,s.cycle,-1);if(p<from||p<floor)break;d=p}
+  let g=0;while(d<=to&&g++<500){if(d>=from)out.push(new Date(d));d=addCycle(d,s.cycle)}
+  return out;
+}
+function computeAlerts(){
+  const t=today(),A=[],days=Number(state.settings.alertDays)||3;
+  const act=active();
+  act.forEach(s=>{
+    const d=parseISO(s.nextDate);if(!d)return;const n=daysBetween(t,d);
+    if(s.trial&&s.trialEnd){const te=parseISO(s.trialEnd),tn=daysBetween(t,te);
+      if(tn>=0&&tn<=7)A.push({lvl:tn<=2?'danger':'warn',icon:'clock',id:s.id,key:'trial'+s.id,txt:`<b>${esc(s.name)}</b> free trial ends ${relDays(te)} and then charges ${fmt(s.amount)}.`,act:'cancelAssist'});
+    } else if(n>=0&&n<=days)A.push({lvl:'warn',icon:'bell',id:s.id,key:'renew'+s.id+s.nextDate,txt:`<b>${esc(s.name)}</b> renews ${relDays(d)} for ${fmt(s.amount)}.`,act:'open'});
+    const h=s.priceHistory||[];
+    if(h.length>=2){const last=h[h.length-1],prev=h[h.length-2];const ld=parseISO(last.date);
+      if(last.amount>prev.amount&&ld&&daysBetween(ld,t)<=90){const pct=((last.amount-prev.amount)/prev.amount*100).toFixed(0);
+        A.push({lvl:'danger',icon:'up',id:s.id,txt:`<b>${esc(s.name)}</b> went up ${pct}% (${fmt(prev.amount)} → ${fmt(last.amount)}), ${fmt((last.amount-prev.amount)*CYCLES[s.cycle].m*12/share(s))} more a year.`,act:'negotiate'})}}
+    if(Number(s.usage)===1)A.push({lvl:'info',icon:'sleep',id:s.id,txt:`You rarely use <b>${esc(s.name)}</b>. Cancelling it would save ${fmt0(yearly(s))} a year.`,act:'cancelAssist'});
+    const dl=noticeDeadline(s);
+    if(dl){const k=daysBetween(t,dl);
+      if(k>=0&&k<=30)A.push({lvl:k<=7?'danger':'warn',icon:'clock',id:s.id,txt:`<b>${esc(s.name)}</b> auto-renews ${dateLabel(d)}. To cancel or renegotiate, give notice by <b>${dateLabel(dl)}</b> (${relDays(dl)}).`,act:'negotiate'});
+      else if(k<0&&n>=0&&n<=60)A.push({lvl:'info',icon:'clock',id:s.id,txt:`The notice deadline for <b>${esc(s.name)}</b> has passed, so it renews ${dateLabel(d)}.`,act:'open'})}
+    const us=unusedSeatCost(s);if(us>0)A.push({lvl:'info',icon:'wallet',id:s.id,txt:`<b>${esc(s.name)}</b> has ${s.seats-s.seatsUsed} unused of ${s.seats} seats, about ${fmt0(us)} a year.`,act:'open'});
+    const as=altSaving(s);if(as>=1)A.push({lvl:'info',icon:'wallet',id:s.id,txt:`Switching <b>${esc(s.name)}</b> to ${esc(s.altLabel||'the cheaper plan')} saves ${fmt0(as)} a year.`,act:'switch'});
+  });
+  state.subs.filter(s=>s.postCancelCharge&&vis(s)).forEach(s=>A.push({lvl:'danger',icon:'alert',id:s.id,txt:`<b>${esc(s.name)}</b> charged ${fmt(s.postCancelCharge.amount)} on ${dateLabel(parseISO(s.postCancelCharge.date))}, after you cancelled it. Contact them for a refund.`,act:'dismiss'}));
+  // duplicates
+  const byName={};act.forEach(s=>{const k=normName(s.name);(byName[k]=byName[k]||[]).push(s)});
+  Object.values(byName).filter(g=>g.length>1).forEach(g=>A.push({lvl:'danger',icon:'copy',id:g[0].id,txt:`<b>${esc(g[0].name)}</b> appears ${g.length} times. Check whether you're paying twice.`,act:'open'}));
+  // overlap
+  OVERLAP_CATS.forEach(c=>{const g=act.filter(s=>s.category===c);const names=new Set(g.map(s=>normName(s.name)));
+    if(names.size>1)A.push({lvl:'info',icon:'copy',txt:`You have ${names.size} ${c.toLowerCase()} subscriptions (${g.map(s=>esc(s.name)).join(', ')}), ${fmt0(g.reduce((a,s)=>a+yearly(s),0))} a year in total. Could you rotate them instead?`,act:'filter:'+c})});
+  // budget
+  const b=Number(state.settings.budget)||0,m=act.reduce((a,s)=>a+monthly(s),0);
+  if(b>0&&m>b)A.unshift({lvl:'danger',icon:'wallet',txt:`You're ${fmt(m-b)} a month over your ${fmt(b)} budget.`,act:'settings'});
+  else if(b>0&&m>b*.9)A.unshift({lvl:'warn',icon:'wallet',txt:`You've used ${Math.round(m/b*100)}% of your ${fmt(b)} monthly budget.`,act:'settings'});
+  const rank={danger:0,warn:1,info:2};A.sort((a,b)=>rank[a.lvl]-rank[b.lvl]);
+  return A;
+}
+
+/* ---------- views ---------- */
+const TABS=[['overview','Overview','home'],['subs','Subscriptions','list'],['calendar','Calendar','cal'],['insights','Insights','chart'],['import','Import','upload'],['settings','Settings','gear']];
+let tab=(location.hash||'').slice(1);if(!TABS.some(t=>t[0]===tab))tab='overview';
+let ui={q:'',cat:'all',status:'active',sort:'next',calMonth:null};
+
+function renderTabs(){
+  const n=computeAlerts().filter(a=>a.lvl!=='info').length;
+  $('#tabs').innerHTML=TABS.map(([k,l,i])=>`<button data-tab="${k}" class="${tab===k?'on':''}">${icon(i)}<span>${l}</span>${k==='overview'&&n?`<span class="badge">${n}</span>`:''}</button>`).join('');
+}
+function go(t){tab=t;try{history.replaceState(null,'','#'+t)}catch(e){}render();window.scrollTo(0,0)}
+function render(){rollForward();$('#wsSel').value=state.settings.workspace||'all';renderTabs();const v=$('#view');v.innerHTML=({overview,subs:subsView,calendar,insights,import:importView,settings})[tab]();bindView()}
+
+function subRow(s,showDate=true){
+  const d=parseISO(s.nextDate);
+  const pills=(s.trial?'<span class="pill trial">Trial</span>':'')+(s.status==='paused'?'<span class="pill paused">Paused</span>':'')+(s.status==='cancelled'?'<span class="pill cancelled">Cancelled</span>':'')+(share(s)>1?`<span class="pill">Split ${share(s)} ways</span>`:'')+((s.workspace==='business'&&(state.settings.workspace||'all')==='all')?'<span class="pill">Business</span>':'');
+  const meta=[s.category,s.status==='active'&&d&&showDate?(s.trial&&s.trialEnd?'Trial ends '+dateLabel(parseISO(s.trialEnd)):'Next '+dateLabel(d)+' · '+relDays(d)):null,s.payment].filter(Boolean).join(' · ');
+  return `<div class="row" data-open="${s.id}"><div class="av" style="background:${hashColor(s.category||s.name)}">${esc(initials(s.name))}</div>
+  <div class="main"><div class="name">${esc(s.name)}${pills}</div><div class="meta">${esc(meta)}</div></div>
+  <div class="amt num">${fmt(yourAmount(s))}<small>/${CYCLES[s.cycle].per}${s.cycle!=='monthly'?' · '+fmt(monthly(s))+'/mo':''}</small></div></div>`;
+}
+function emptyState(){
+  return `<div class="card empty"><div class="ill">${icon('list')}</div><h3>Track your first subscription</h3>
+  <p>Add subscriptions by hand, or import a bank or card statement (CSV) and let the app find recurring charges for you.</p>
+  <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><button class="btn primary" data-act="add">Add a subscription</button><button class="btn" data-go="import">Import a statement</button><button class="btn ghost" data-act="sample">Try sample data</button></div></div>`;
+}
+
+function overview(){
+  if(!state.subs.length)return emptyState();
+  const act=active(),m=act.reduce((a,s)=>a+monthly(s),0),t=today();
+  const upcoming=act.filter(s=>s.nextDate).sort((a,b)=>a.nextDate.localeCompare(b.nextDate));
+  const next30=act.flatMap(s=>occurrences(s,t,new Date(t.getTime()+30*864e5)).map(d=>({s,d}))).reduce((a,o)=>a+yourAmount(o.s),0);
+  const trials=act.filter(s=>s.trial).length;
+  const b=Number(state.settings.budget)||0;
+  const alerts=computeAlerts();
+  const nx=upcoming[0];
+  return `<div class="grid kpis">
+    <div class="card kpi"><div class="label">Per month</div><div class="value num">${fmt(m)}</div>
+      ${b?`<div class="meter ${m>b?'over':''}"><i style="width:${Math.min(100,m/b*100)}%"></i></div><div class="foot">${fmt0(b)} budget</div>`:`<div class="foot">${act.length} active</div>`}</div>
+    <div class="card kpi"><div class="label">Per year</div><div class="value num">${fmt0(m*12)}</div><div class="foot">at current prices</div></div>
+    <div class="card kpi"><div class="label">Next 30 days</div><div class="value num">${fmt(next30)}</div><div class="foot">in scheduled charges</div></div>
+    <div class="card kpi"><div class="label">Next charge</div><div class="value" style="font-size:19px;margin-top:6px">${nx?esc(nx.name):'—'}</div><div class="foot">${nx?fmt(nx.amount)+' · '+relDays(parseISO(nx.nextDate)):''}${trials?` · ${trials} trial${trials>1?'s':''}`:''}</div></div>
+  </div>
+  <div class="grid two">
+    <div class="card"><h2>${icon('bell','ic')} Needs attention <span class="muted">${alerts.length||''}</span></h2>
+      ${alerts.length?alerts.map(a=>`<div class="alert ${a.lvl}">${icon(a.icon,'ic')}<div>${a.txt}</div>${a.act?`<button class="btn sm act" data-alert="${esc(a.act)}" data-id="${a.id||''}">${({cancelAssist:'Cancel',negotiate:'Negotiate',switch:'Switch',settings:'Budget',dismiss:'Dismiss'})[a.act]||(a.act.startsWith('filter')?'View':'Review')}</button>`:''}</div>`).join(''):'<p class="muted" style="margin:0">Nothing needs your attention right now.</p>'}
+    </div>
+    <div class="card"><h2>Upcoming charges</h2><div class="list">${upcoming.slice(0,7).map(s=>subRow(s)).join('')||'<p class="muted">No active subscriptions.</p>'}</div>
+      ${upcoming.length>7?`<button class="btn sm" data-go="subs" style="margin-top:8px">View all ${upcoming.length}</button>`:''}</div>
+  </div>`;
+}
+
+function subsView(){
+  if(!state.subs.length)return emptyState();
+  let L=state.subs.filter(s=>vis(s)&&(ui.status==='all'||s.status===ui.status)&&(ui.cat==='all'||s.category===ui.cat)&&(!ui.q||(s.name+' '+(s.notes||'')+' '+(s.payment||'')+' '+(s.tags||'')).toLowerCase().includes(ui.q.toLowerCase())));
+  const sorters={next:(a,b)=>(a.nextDate||'9').localeCompare(b.nextDate||'9'),cost:(a,b)=>monthly(b)-monthly(a),name:(a,b)=>a.name.localeCompare(b.name),category:(a,b)=>(a.category||'').localeCompare(b.category||'')||a.name.localeCompare(b.name)};
+  L.sort(sorters[ui.sort]);
+  const cats=[...new Set(state.subs.map(s=>s.category).filter(Boolean))].sort();
+  const tot=L.filter(s=>s.status==='active').reduce((a,s)=>a+monthly(s),0);
+  return `<div class="toolbar">
+    <input type="search" class="search" id="q" placeholder="Search name, notes, card…" value="${esc(ui.q)}">
+    <select class="inline" id="fcat"><option value="all">All categories</option>${cats.map(c=>`<option ${ui.cat===c?'selected':''}>${esc(c)}</option>`).join('')}</select>
+    <select class="inline" id="fstatus">${[['active','Active'],['paused','Paused'],['cancelled','Cancelled'],['all','All statuses']].map(([v,l])=>`<option value="${v}" ${ui.status===v?'selected':''}>${l}</option>`).join('')}</select>
+    <select class="inline" id="fsort">${[['next','Next charge'],['cost','Cost'],['name','Name'],['category','Category']].map(([v,l])=>`<option value="${v}" ${ui.sort===v?'selected':''}>Sort: ${l}</option>`).join('')}</select>
+  </div>
+  <div class="card"><h2>${L.length} subscription${L.length===1?'':'s'} <span class="muted num" style="margin-left:auto">${fmt(tot)}/mo active</span></h2>
+  <div class="list">${L.map(s=>subRow(s)).join('')||'<p class="muted">Nothing matches these filters.</p>'}</div></div>`;
+}
+
+function calendar(){
+  const t=today();const base=ui.calMonth?new Date(ui.calMonth):new Date(t.getFullYear(),t.getMonth(),1);
+  const first=new Date(base.getFullYear(),base.getMonth(),1),last=new Date(base.getFullYear(),base.getMonth()+1,0);
+  const start=new Date(first);start.setDate(1-first.getDay());
+  const end=new Date(last);end.setDate(last.getDate()+(6-last.getDay()));
+  const map={};let monthTotal=0;
+  active().forEach(s=>occurrences(s,start,end).forEach(d=>{const k=iso(d);if(s.trial&&k===s.trialEnd){if(d.getMonth()===base.getMonth())monthTotal+=yourAmount(s);return}(map[k]=map[k]||[]).push(s);if(d.getMonth()===base.getMonth())monthTotal+=yourAmount(s)}));
+  active().forEach(s=>{if(s.trial&&s.trialEnd){const te=parseISO(s.trialEnd);if(te>=start&&te<=end){const k=iso(te);(map[k]=map[k]||[]).push(Object.assign({},s,{_trialEnd:true}))}}});
+  let cells='';for(let d=new Date(start);d<=end;d.setDate(d.getDate()+1)){const k=iso(d),ev=map[k]||[];
+    cells+=`<div class="d ${d.getMonth()!==base.getMonth()?'out':''} ${k===iso(t)?'today':''}"><div class="n">${d.getDate()}</div>${ev.slice(0,3).map(s=>`<div class="ev ${s._trialEnd?'trial':''}" data-open="${s.id}" title="${esc(s.name)}">${s._trialEnd?'Trial ends: ':''}${esc(s.name)}</div>`).join('')}${ev.length>3?`<div class="tot">+${ev.length-3} more</div>`:''}</div>`}
+  return `<div class="card"><h2><button class="btn sm" data-cal="-1" aria-label="Previous month">‹</button>
+    <span style="min-width:150px;text-align:center">${base.toLocaleDateString(undefined,{month:'long',year:'numeric'})}</span>
+    <button class="btn sm" data-cal="1" aria-label="Next month">›</button><button class="btn sm ghost" data-cal="0">Today</button>
+    <span class="muted num hide-sm" style="margin-left:auto">${fmt(monthTotal)} this month</span></h2>
+    <div class="cal">${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>`<div class="dow">${d}</div>`).join('')}${cells}</div>
+    <div class="toolbar section-gap" style="margin-bottom:0"><button class="btn sm" data-act="ics">${icon('cal')} Add renewals to your calendar (.ics)</button><span class="note">Works with Apple Calendar, Google Calendar and Outlook. Includes reminders ${state.settings.alertDays} days before each charge.</span></div>
+  </div>`;
+}
+
+function insights(){
+  if(!state.subs.length)return emptyState();
+  const act=active(),t=today();const total=act.reduce((a,s)=>a+monthly(s),0)||1;
+  const byCat={};act.forEach(s=>{const c=s.category||'Other';byCat[c]=(byCat[c]||0)+monthly(s)});
+  const cats=Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
+  const months=[];for(let i=0;i<12;i++){const a=new Date(t.getFullYear(),t.getMonth()+i,1),b=new Date(t.getFullYear(),t.getMonth()+i+1,0);
+    months.push({label:a.toLocaleDateString(undefined,{month:'short'}),v:act.reduce((sum,s)=>sum+occurrences(s,i===0?t:a,b).length*yourAmount(s),0)})}
+  const mx=Math.max(...months.map(m=>m.v),1);
+  const top=[...act].sort((a,b)=>yearly(b)-yearly(a)).slice(0,5);
+  const saved=savedTotal(),opps=opportunities(),possible=opps.reduce((a,o)=>a+o.best.v,0);
+  const TYPE={cancel:'Cancelled',negotiate:'Negotiated',switch:'Switched plan'};
+  const log=state.savings.slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,8);
+  const unrated=act.filter(s=>!Number(s.usage)).length;
+  const increases=state.subs.filter(s=>(s.priceHistory||[]).length>1);
+  return `<div class="grid kpis">
+    <div class="card kpi"><div class="label">Annual cost</div><div class="value num">${fmt0(total*12)}</div><div class="foot">${act.length} active subscriptions</div></div>
+    <div class="card kpi"><div class="label">Average subscription</div><div class="value num">${fmt(act.length?total/act.length:0)}</div><div class="foot">per month</div></div>
+    <div class="card kpi"><div class="label">Saved so far</div><div class="value num saved">${fmt0(saved)}</div><div class="foot">per year, from ${state.savings.length} action${state.savings.length===1?'':'s'}</div></div>
+    <div class="card kpi"><div class="label">Possible savings</div><div class="value num">${fmt0(possible)}</div><div class="foot">${opps.length} opportunit${opps.length===1?'y':'ies'}${unrated?` · ${unrated} unrated`:''}</div></div>
+  </div>
+  <div class="grid two">
+    <div class="card"><h2>Savings opportunities</h2>${opps.length?`<table class="t"><thead><tr><th>Subscription</th><th>Idea</th><th class="r">Per year</th><th></th></tr></thead><tbody>${opps.map(o=>`<tr><td><a href="#" data-open="${o.s.id}">${esc(o.s.name)}</a></td><td>${esc(o.best.txt)}</td><td class="r num">${o.best.v?fmt0(o.best.v):'—'}</td><td class="r"><button class="btn sm" data-alert="${({cancel:'cancelAssist',switch:'switch',negotiate:'negotiate',seats:'open'})[o.best.kind]}" data-id="${o.s.id}">${({cancel:'Cancel',switch:'Switch',negotiate:'Negotiate',seats:'Review'})[o.best.kind]}</button></td></tr>`).join('')}</tbody></table>`:`<p class="muted" style="margin:0">No opportunities right now. Rate how often you use each subscription, and add cheaper plan options in the editor, to find more.</p>`}</div>
+    <div class="card"><h2>Savings log</h2>${log.length?`<table class="t"><tbody>${log.map(x=>`<tr><td>${esc(x.name)}<div class="note">${TYPE[x.type]||x.type} · ${dateLabel(parseISO(x.date))}${x.note?' · '+esc(x.note):''}</div></td><td class="r num saved">${fmt0(x.yearly)}/yr</td></tr>`).join('')}</tbody></table>`:'<p class="muted" style="margin:0">When you cancel, negotiate or switch plans with the assistants, the savings are recorded here.</p>'}</div>
+  </div>
+  ${sharedCard()}${businessCard()}
+  <div class="grid two">
+    <div class="card"><h2>Monthly spend by category</h2><div class="bars">${cats.map(([c,v])=>`<div class="b"><span>${esc(c)}</span><div class="track"><i style="width:${v/total*100}%;background:${hashColor(c)}"></i></div><span class="v num">${fmt(v)}</span></div>`).join('')||'<p class="muted">No active subscriptions.</p>'}</div></div>
+    <div class="card"><h2>Projected charges, next 12 months</h2><div class="cols">${months.map(m=>`<div class="c" title="${m.label}: ${fmt(m.v)}"><em class="num">${m.v>=1000?Math.round(m.v/100)/10+'k':Math.round(m.v)}</em><i style="height:${m.v/mx*80}%"></i><span>${m.label}</span></div>`).join('')}</div>
+      <p class="note">Annual and quarterly renewals show up as spikes. First bar covers the rest of this month.</p></div>
+  </div>
+  <div class="grid two">
+    <div class="card"><h2>Most expensive per year</h2><table class="t"><thead><tr><th>Subscription</th><th class="r">Per year</th><th class="r">Share</th></tr></thead><tbody>
+      ${top.map(s=>`<tr data-open="${s.id}" style="cursor:pointer"><td>${esc(s.name)}</td><td class="r num">${fmt(yearly(s))}</td><td class="r num">${Math.round(monthly(s)/total*100)}%</td></tr>`).join('')}</tbody></table></div>
+    <div class="card"><h2>Price changes</h2>${increases.length?`<table class="t"><thead><tr><th>Subscription</th><th class="r">Was</th><th class="r">Now</th><th class="r">Change</th></tr></thead><tbody>${increases.map(s=>{const h=s.priceHistory,f=h[0].amount,l=h[h.length-1].amount;return`<tr data-open="${s.id}" style="cursor:pointer"><td>${esc(s.name)}</td><td class="r num">${fmt(f)}</td><td class="r num">${fmt(l)}</td><td class="r num" style="color:${l>f?'var(--danger)':'var(--accent)'}">${l>f?'+':''}${Math.round((l-f)/f*100)}%</td></tr>`}).join('')}</tbody></table>`:'<p class="muted" style="margin:0">No price changes yet. When you edit a price, the app keeps the history and warns you about increases.</p>'}</div>
+  </div>`;
+}
+
+function settle(){const map={};others().forEach(p=>map[p.id]={p,owesYou:0,youOwe:0,items:[]});
+  state.subs.filter(s=>s.status==='active'&&(s.members||[]).length).forEach(s=>{const per=(Number(s.amount)||0)/share(s)*CYCLES[s.cycle].m;
+    if((s.payer||'me')==='me')s.members.forEach(id=>{if(map[id]){map[id].owesYou+=per;map[id].items.push(`${s.name} ${fmt(per)}`)}});
+    else if(map[s.payer]){map[s.payer].youOwe+=per;map[s.payer].items.push(`you owe for ${s.name} ${fmt(per)}`)}});
+  return Object.values(map).filter(x=>x.owesYou||x.youOwe)}
+function settleText(){const rows=settle();return 'Shared subscriptions, monthly:\n'+rows.map(r=>{const net=r.owesYou-r.youOwe;return `${r.p.name} ${net>=0?'owes you':'is owed'} ${fmt(Math.abs(net))} (${r.items.join(', ')})`}).join('\n')}
+function sharedCard(){const rows=settle();if(!rows.length)return'';
+  return `<div class="card section-gap"><h2>Shared costs <button class="btn sm" data-act="copySettle" style="margin-left:auto">${icon('copy')} Copy summary</button></h2>
+  <table class="t"><thead><tr><th>Person</th><th class="r">Owes you</th><th class="r">You owe</th><th class="r">Net / month</th></tr></thead><tbody>
+  ${rows.map(r=>{const net=r.owesYou-r.youOwe;return`<tr><td>${esc(r.p.name)}<div class="note">${esc(r.items.join(' · '))}</div></td><td class="r num">${fmt(r.owesYou)}</td><td class="r num">${fmt(r.youOwe)}</td><td class="r num" style="font-weight:650;color:${net>=0?'var(--accent)':'var(--danger)'}">${net>=0?'+':'−'}${fmt(Math.abs(net))}</td></tr>`}).join('')}</tbody></table>
+  <p class="note">Positive means they owe you. Amounts are monthly equivalents, so annual plans are spread across 12 months.</p></div>`}
+function businessCard(){const ws=state.settings.workspace||'all';if(ws==='personal')return'';const B=state.subs.filter(s=>s.status==='active'&&s.workspace==='business');if(!B.length)return'';
+  const m=B.reduce((a,s)=>a+monthly(s),0),seats=B.reduce((a,s)=>a+(Number(s.seats)||0),0),unused=B.reduce((a,s)=>a+unusedSeatCost(s),0);
+  const rows=B.slice().sort((a,b)=>a.nextDate.localeCompare(b.nextDate));
+  return `<div class="card section-gap"><h2>Business tools <span class="muted num" style="margin-left:auto">${fmt(m)}/mo · ${seats} seats${unused?` · ${fmt0(unused)}/yr unused`:''}</span></h2>
+  <table class="t"><thead><tr><th>Tool</th><th class="hide-sm">Owner</th><th class="r">Seats</th><th>Renews</th><th>Notice by</th><th class="r">Per year</th></tr></thead><tbody>
+  ${rows.map(s=>{const dl=noticeDeadline(s),k=dl?daysBetween(today(),dl):null;return`<tr data-open="${s.id}" style="cursor:pointer"><td>${esc(s.name)}</td><td class="hide-sm">${esc(s.owner||'—')}</td><td class="r num">${s.seats?(seatsTracked(s)?s.seatsUsed+'/':'')+s.seats:'—'}</td><td>${dateLabel(parseISO(s.nextDate))}${s.autoRenew===false?' <span class="pill">Manual</span>':''}</td><td style="${k!=null&&k>=0&&k<=30?'color:var(--warn);font-weight:600':k!=null&&k<0?'color:var(--muted)':''}">${dl?dateLabel(dl)+(k<0?' (passed)':''):'—'}</td><td class="r num">${fmt0(yearly(s))}</td></tr>`}).join('')}</tbody></table></div>`}
+let importRows=null,importHeaders=null,importMap=null,importFound=null;
+function importView(){
+  let body=`<div class="card"><h2>${icon('upload','ic')} Find subscriptions in a statement</h2>
+    <p class="muted" style="margin-top:0">Download a CSV of transactions from your bank or card website (3–12 months works best) and drop it here. The app looks for charges that repeat on a regular schedule. The file is read in your browser and is never uploaded.</p>
+    <div class="drop" id="drop"><input type="file" id="file" accept=".csv,text/csv" hidden><b>Choose a CSV file</b> or drag it here</div></div>`;
+  if(importRows){
+    const opts=sel=>importHeaders.map((h,i)=>`<option value="${i}" ${sel===i?'selected':''}>${esc(h||'Column '+(i+1))}</option>`).join('');
+    body+=`<div class="card section-gap"><h2>Columns <span class="muted">${importRows.length} transactions</span></h2>
+      <div class="form"><label class="f"><span>Date</span><select id="mDate">${opts(importMap.date)}</select></label>
+      <label class="f"><span>Description / merchant</span><select id="mDesc">${opts(importMap.desc)}</select></label>
+      <label class="f"><span>Amount</span><select id="mAmt">${opts(importMap.amt)}</select></label>
+      <label class="f"><span>Or separate debit column</span><select id="mDebit"><option value="-1">None</option>${opts(importMap.debit)}</select></label></div>
+      <div style="margin-top:12px"><button class="btn primary" data-act="detect">Find recurring charges</button></div></div>`;
+  }
+  if(importFound){
+    body+=`<div class="card section-gap"><h2>Found ${importFound.length} likely subscription${importFound.length===1?'':'s'}</h2>
+    ${importFound.length?`<table class="t"><thead><tr><th></th><th>Merchant</th><th>Schedule</th><th class="r">Amount</th><th class="hide-sm">Last charged</th></tr></thead><tbody>
+    ${importFound.map((f,i)=>`<tr><td><input type="checkbox" class="pick" data-i="${i}" ${f.exists?'':'checked'} style="width:18px;height:18px;accent-color:var(--accent)"></td>
+      <td><input type="text" class="pname" data-i="${i}" value="${esc(f.name)}" style="padding:5px 8px">${f.afterCancel?'<div class="note" style="color:var(--danger);font-weight:600">Charged after you cancelled</div>':f.exists?'<div class="note">Already tracked</div>':''}${f.increased?`<div class="note" style="color:var(--danger)">Price went up from ${fmt(f.prevAmount)}</div>`:''}</td>
+      <td>${CYCLES[f.cycle].label}<div class="note">${f.count} charges</div></td><td class="r num">${fmt(f.amount)}</td><td class="hide-sm">${dateLabel(f.last)}</td></tr>`).join('')}</tbody></table>
+    <div style="margin-top:12px;display:flex;gap:8px"><button class="btn primary" data-act="addFound">Add selected</button><button class="btn" data-act="clearImport">Start over</button></div>`:`<p class="muted">No repeating charges found. Try a longer date range, or check that the columns above are right.</p>`}</div>`;
+  }
+  return body;
+}
+function parseCSV(text){
+  const rows=[];let row=[],f='',q=false;
+  for(let i=0;i<text.length;i++){const c=text[i];
+    if(q){if(c==='"'){if(text[i+1]==='"'){f+='"';i++}else q=false}else f+=c}
+    else if(c==='"')q=true;else if(c===','){row.push(f);f=''}else if(c==='\n'||c==='\r'){if(c==='\r'&&text[i+1]==='\n')i++;row.push(f);f='';if(row.some(x=>x.trim()!==''))rows.push(row);row=[]}else f+=c}
+  row.push(f);if(row.some(x=>x.trim()!==''))rows.push(row);return rows;
+}
+function parseDateLoose(s){s=String(s||'').trim();let m;
+  if((m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/)))return new Date(+m[1],m[2]-1,+m[3]);
+  if((m=s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/))){let y=+m[3];if(y<100)y+=2000;return new Date(y,m[1]-1,+m[2])}
+  const d=new Date(s);return isNaN(d)?null:new Date(d.getFullYear(),d.getMonth(),d.getDate())}
+const parseAmt=s=>{s=String(s||'').trim();if(!s)return NaN;const neg=/^\(.*\)$/.test(s)||/^-/.test(s)||/-$/.test(s);const n=parseFloat(s.replace(/[^0-9.]/g,''));return isNaN(n)?NaN:(neg?-n:n)};
+function loadCSV(text){
+  const r=parseCSV(text);if(r.length<2){toast('That file has no rows');return}
+  importHeaders=r[0].map(h=>h.trim());importRows=r.slice(1);importFound=null;
+  const find=re=>importHeaders.findIndex(h=>re.test(h.toLowerCase()));
+  let date=find(/date|posted/),desc=find(/desc|merchant|payee|name|memo|details/),amt=find(/^amount|amount$|amt/),debit=find(/debit|withdrawal/);
+  if(date<0)date=0;if(desc<0)desc=Math.min(1,importHeaders.length-1);if(amt<0)amt=debit>=0?debit:importHeaders.length-1;
+  importMap={date,desc,amt,debit};render();
+}
+function cleanMerchant(s){
+  let x=String(s||'').toUpperCase().replace(/\b(POS|DEBIT|CREDIT|PURCHASE|RECURRING|PAYMENT|CARD|ACH|ONLINE|WWW|COM|INC|LLC|CO|PREAUTHORIZED|CHECKCARD|AUTOPAY|BILL|SQ|TST|PP|PAYPAL)\b/g,' ').replace(/\*/g,' ').replace(/[#0-9]+/g,' ').replace(/[^A-Z&+ ]/g,' ').replace(/\s+/g,' ').trim();
+  const words=x.split(' ').filter(w=>w.length>1).slice(0,3);
+  return words.join(' ');
+}
+function detect(){
+  const m={date:+$('#mDate').value,desc:+$('#mDesc').value,amt:+$('#mAmt').value,debit:+$('#mDebit').value};importMap=m;
+  const tx=importRows.map(r=>{let a=m.debit>=0&&r[m.debit]?.trim()?-Math.abs(parseAmt(r[m.debit])):parseAmt(r[m.amt]);return{d:parseDateLoose(r[m.date]),raw:r[m.desc],k:cleanMerchant(r[m.desc]),a}}).filter(t=>t.d&&!isNaN(t.a)&&t.k);
+  const negShare=tx.filter(t=>t.a<0).length/Math.max(1,tx.length);const chargesNeg=negShare>=.5;
+  const groups={};tx.filter(t=>chargesNeg?t.a<0:t.a>0).forEach(t=>{(groups[t.k]=groups[t.k]||[]).push(t)});
+  const found=[];let flagged=0;
+  Object.entries(groups).forEach(([k,g])=>{
+    if(g.length<2)return;g.sort((a,b)=>a.d-b.d);
+    // cluster by amount (allow up to 25% drift for price changes)
+    const amts=g.map(t=>Math.abs(t.a));const med=amts.slice().sort((a,b)=>a-b)[Math.floor(amts.length/2)];
+    const g2=g.filter(t=>Math.abs(Math.abs(t.a)-med)/med<=.25);if(g2.length<2)return;
+    const gaps=[];for(let i=1;i<g2.length;i++)gaps.push(daysBetween(g2[i-1].d,g2[i].d));
+    const sg=gaps.slice().sort((a,b)=>a-b),mg=sg[Math.floor(sg.length/2)];
+    let cycle=null;if(mg>=6&&mg<=8)cycle='weekly';else if(mg>=26&&mg<=35)cycle='monthly';else if(mg>=84&&mg<=97)cycle='quarterly';else if(mg>=350&&mg<=380)cycle='yearly';
+    if(!cycle)return;
+    const regular=gaps.filter(x=>Math.abs(x-mg)<=Math.max(4,mg*.15)).length/gaps.length;if(regular<.6)return;
+    if(cycle==='weekly'&&g2.length<4)return;
+    const last=g2[g2.length-1],lastAmt=Math.abs(last.a);
+    const prevT=[...g2].reverse().find(t=>Math.abs(Math.abs(t.a)-lastAmt)>.009);const prevAmt=prevT?Math.abs(prevT.a):lastAmt;
+    const name=k.split(' ').map(w=>w[0]+w.slice(1).toLowerCase()).join(' ');
+    const dirMatch=DIRECTORY.find(d=>normName(d[0]).startsWith(normName(name))||normName(name).startsWith(normName(d[0].split(' ')[0])));
+    const fname=dirMatch?dirMatch[0].replace(/ \(.*\)$/,''):name;
+    const cs=state.subs.find(x=>x.status==='cancelled'&&x.cancelledAt&&normName(x.name)===normName(fname));
+    let afterCancel=false;if(cs&&last.d>parseISO(cs.cancelledAt)){cs.postCancelCharge={date:iso(last.d),amount:lastAmt};afterCancel=true;flagged++}
+    found.push({afterCancel,name:fname,cycle,amount:lastAmt,prevAmount:prevAmt,increased:lastAmt>prevAmt+.009,count:g2.length,last:last.d,category:dirMatch?dirMatch[1]:'Other',cancelUrl:dirMatch?dirMatch[2]:'',exists:state.subs.some(s=>normName(s.name)===normName(fname))});
+  });
+  found.sort((a,b)=>b.amount*CYCLES[b.cycle].m-a.amount*CYCLES[a.cycle].m);
+  importFound=found;if(flagged){save();toast(flagged+' charge'+(flagged>1?'s':'')+' after cancellation found')}render();
+}
+function addFound(){
+  let n=0;document.querySelectorAll('.pick').forEach(cb=>{if(!cb.checked)return;const f=importFound[+cb.dataset.i];const name=document.querySelector(`.pname[data-i="${cb.dataset.i}"]`).value.trim()||f.name;
+    let next=addCycle(f.last,f.cycle);while(next<today())next=addCycle(next,f.cycle);
+    const hist=f.increased?[{date:iso(f.last),amount:f.prevAmount},{date:iso(f.last),amount:f.amount}]:[{date:iso(f.last),amount:f.amount}];
+    state.subs.push(newSub({name,amount:f.amount,cycle:f.cycle,nextDate:iso(next),category:f.category,cancelUrl:f.cancelUrl,notes:'Found in imported statement',priceHistory:hist}));n++});
+  save();importRows=importFound=null;toast(`Added ${n} subscription${n===1?'':'s'}`);go('subs');
+}
+
+function settings(){
+  const s=state.settings;const perm=('Notification' in window)?Notification.permission:'unsupported';
+  return `<div class="grid two" style="margin-top:0">
+  <div class="card"><h2>Preferences</h2><div class="form">
+    <label class="f"><span>Monthly budget</span><input type="number" min="0" step="1" id="sBudget" value="${s.budget||''}" placeholder="No budget"></label>
+    <label class="f"><span>Currency</span><select id="sCur">${['USD','CAD','EUR','GBP','AUD','NZD','JPY','INR','MXN'].map(c=>`<option ${s.currency===c?'selected':''}>${c}</option>`).join('')}</select></label>
+    <label class="f full"><span>Warn me before a renewal</span><select id="sDays">${[1,2,3,5,7,14].map(d=>`<option value="${d}" ${+s.alertDays===d?'selected':''}>${d} day${d>1?'s':''} before</option>`).join('')}</select></label>
+    <label class="check full"><input type="checkbox" id="sNotify" ${s.notify&&perm==='granted'?'checked':''} ${perm==='unsupported'||perm==='denied'?'disabled':''}> Show browser notifications when I open the app</label>
+    ${perm==='denied'?'<p class="note full" style="margin:0">Notifications are blocked for this site in your browser settings.</p>':''}
+    <p class="note full" style="margin:0">For reminders when the app is closed, add your renewals to your calendar from the Calendar tab.</p>
+  </div></div>
+  <div class="card"><h2>Your data</h2><p class="muted" style="margin-top:0">Everything stays in this browser on this device. Nothing is sent to a server. Back it up regularly, and use the backup to move to another device.</p>
+    <div style="display:flex;flex-wrap:wrap;gap:8px">
+      <button class="btn" data-act="exportJson">Download backup</button>
+      <label class="btn" style="cursor:pointer">Restore backup<input type="file" id="restore" accept=".json,application/json" hidden></label>
+      <button class="btn" data-act="exportCsv">Export CSV</button>
+      <button class="btn" data-act="ics">Calendar file (.ics)</button>
+      <button class="btn" data-act="sample">Load sample data</button>
+      <button class="btn danger" data-act="wipe">Delete all data</button>
+    </div>
+    <p class="note">${state.subs.length} subscriptions stored.</p></div>
+  </div>
+  <div class="card section-gap"><h2>People</h2><p class="muted" style="margin-top:0">Add the people you share subscriptions with. In each subscription, choose who shares it and who pays, and Insights shows who owes whom.</p>
+    <div class="chips" id="peopleChips">${others().map(p=>`<span class="chip">${esc(p.name)}<span class="x" role="button" tabindex="0" aria-label="Remove ${esc(p.name)}" data-rmp="${p.id}">×</span></span>`).join('')}<button type="button" class="chip add">+ Person</button></div></div>`;
+}
+
+/* ---------- editor ---------- */
+function newSub(o){return Object.assign({id:uid(),name:'',amount:0,cycle:'monthly',nextDate:iso(today()),category:'Other',payment:'',trial:false,trialEnd:'',cancelUrl:'',notes:'',tags:'',shareCount:1,members:[],payer:'me',workspace:(state.settings.workspace==='business'?'business':'personal'),seats:'',seatsUsed:'',owner:'',noticeDays:'',autoRenew:true,altLabel:'',altPrice:'',altCycle:'yearly',usage:0,status:'active',priceHistory:[],createdAt:iso(today())},o)}
+function addPersonInline(container,onAdd){
+  const btn=container.querySelector('.chip.add');const wrap=document.createElement('span');wrap.className='chip';wrap.innerHTML='<input type="text" placeholder="Name" aria-label="New person name">';
+  btn.replaceWith(wrap);const inp=wrap.querySelector('input');inp.focus();
+  let done=false;const finish=()=>{if(done)return;done=true;const n=inp.value.trim();if(wrap.isConnected)wrap.replaceWith(btn);if(!n)return;
+    let p=people().find(x=>x.name.toLowerCase()===n.toLowerCase());if(!p){p={id:uid(),name:n};people().push(p);save()}onAdd(p)};
+  inp.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();finish()}else if(e.key==='Escape'){e.preventDefault();inp.value='';finish()}};inp.onblur=finish;
+}
+function openEditor(id,preset){
+  const s=id?state.subs.find(x=>x.id===id):newSub(preset||{});if(!s)return;const isNew=!id;
+  const d=$('#dlg');const ws=s.workspace||'personal';let members=(s.members||[]).slice();
+  d.innerHTML=`<form method="dialog" id="ef"><div class="dlg-h"><h3>${isNew?'Add subscription':esc(s.name)}</h3><button type="button" class="btn ghost sm" data-close aria-label="Close">${icon('x')}</button></div>
+  <div class="dlg-b"><div class="form">
+    <label class="f full"><span>Name</span><input type="text" name="name" list="dir" required value="${esc(s.name)}" placeholder="e.g. Netflix" autocomplete="off"><datalist id="dir">${DIRECTORY.map(x=>`<option value="${esc(x[0])}">`).join('')}</datalist></label>
+    <label class="f"><span>Price</span><input type="number" name="amount" step="0.01" min="0" required value="${s.amount||''}" placeholder="0.00"></label>
+    <label class="f"><span>Billed</span><select name="cycle">${Object.entries(CYCLES).map(([k,v])=>`<option value="${k}" ${s.cycle===k?'selected':''}>${v.label}</option>`).join('')}</select></label>
+    <label class="f"><span>Next charge</span><input type="date" name="nextDate" required value="${esc(s.nextDate)}"></label>
+    <label class="f"><span>Category</span><select name="category">${CATS.map(c=>`<option ${s.category===c?'selected':''}>${c}</option>`).join('')}</select></label>
+    <label class="f full"><span>Paid with</span><input type="text" name="payment" value="${esc(s.payment)}" placeholder="e.g. Visa ••4417"></label>
+    <div class="full"><label class="f"><span>Workspace</span></label><div class="seg" id="wsSeg">${[['personal','Personal'],['business','Business']].map(([v,l])=>`<button type="button" data-w="${v}" class="${ws===v?'on':''}">${l}</button>`).join('')}</div></div>
+    <div class="full sub-block" id="bizBlock" style="${ws==='business'?'':'display:none'}"><div class="form">
+      <label class="f"><span>Seats / licenses</span><input type="number" name="seats" min="0" step="1" value="${esc(s.seats)}" placeholder="—"></label>
+      <label class="f"><span>Seats in use</span><input type="number" name="seatsUsed" min="0" step="1" value="${esc(s.seatsUsed)}" placeholder="—"></label>
+      <label class="f"><span>Owner</span><input type="text" name="owner" value="${esc(s.owner)}" placeholder="Who manages it"></label>
+      <label class="f"><span>Notice period (days)</span><input type="number" name="noticeDays" min="0" step="1" value="${esc(s.noticeDays)}" placeholder="e.g. 30"></label>
+      <label class="check full"><input type="checkbox" name="autoRenew" ${s.autoRenew!==false?'checked':''}> Renews automatically</label>
+    </div></div>
+    <div class="full"><label class="f"><span>Shared with</span></label><div class="chips" id="members">${others().map(p=>`<button type="button" class="chip ${members.includes(p.id)?'on':''}" data-p="${p.id}">${esc(p.name)}</button>`).join('')}<button type="button" class="chip add">+ Person</button></div></div>
+    <label class="f"><span>Paid by</span><select name="payer"><option value="me">You</option>${others().map(p=>`<option value="${p.id}" ${s.payer===p.id?'selected':''}>${esc(p.name)}</option>`).join('')}</select></label>
+    <div class="f"><span style="display:block;margin-bottom:4px">Your share</span><div id="shareOut" class="num" style="padding:9px 0;color:var(--ink);font-weight:600"></div></div>
+    <label class="check full"><input type="checkbox" name="trial" ${s.trial?'checked':''}> This is a free trial</label>
+    <label class="f full" id="trialWrap" style="${s.trial?'':'display:none'}"><span>Trial ends (first charge)</span><input type="date" name="trialEnd" value="${esc(s.trialEnd)}"></label>
+    <div class="full"><label class="f"><span>How much do you use it?</span></label><div class="seg" id="usage">${USAGE.map((u,i)=>`<button type="button" data-u="${i}" class="${+s.usage===i?'on':''}">${u}</button>`).join('')}</div></div>
+    <div class="full"><label class="f"><span>Cheaper option (annual, family, student or bundle plan)</span></label>
+      <div class="trio"><input type="text" name="altLabel" value="${esc(s.altLabel)}" placeholder="e.g. Annual plan" aria-label="Cheaper option name"><input type="number" name="altPrice" step="0.01" min="0" value="${esc(s.altPrice)}" placeholder="Price" aria-label="Cheaper option price"><select name="altCycle" aria-label="Cheaper option billing">${Object.entries(CYCLES).map(([k,v])=>`<option value="${k}" ${(s.altCycle||'yearly')===k?'selected':''}>${v.label}</option>`).join('')}</select></div>
+      <div class="note" id="altOut" style="margin-top:4px"></div></div>
+    <label class="f full"><span>Manage / cancel link</span><input type="url" name="cancelUrl" value="${esc(s.cancelUrl)}" placeholder="https://"></label>
+    <label class="f full"><span>Notes</span><textarea name="notes" rows="2" placeholder="Account email, plan, who uses it…">${esc(s.notes)}</textarea></label>
+    ${!isNew?`<label class="f"><span>Status</span><select name="status">${[['active','Active'],['paused','Paused'],['cancelled','Cancelled']].map(([v,l])=>`<option value="${v}" ${s.status===v?'selected':''}>${l}</option>`).join('')}</select></label>`:''}
+    ${!isNew&&s.cancelRef?`<div class="f"><span style="display:block;margin-bottom:4px">Cancellation ref</span><div style="padding:9px 0;color:var(--ink)">${esc(s.cancelRef)}</div></div>`:''}
+    ${!isNew&&(s.priceHistory||[]).length>1?`<div class="full hist">Price history: ${s.priceHistory.map(h=>`${fmt(h.amount)} (${dateLabel(parseISO(h.date))})`).join(' → ')}</div>`:''}
+  </div></div>
+  <div class="dlg-f">${!isNew?`<button type="button" class="btn danger left" data-del>Delete</button>`:''}
+    ${!isNew&&s.status==='active'?`<button type="button" class="btn" data-assist="negotiate">Negotiate</button><button type="button" class="btn" data-assist="cancel">Cancel it</button>`:''}
+    <button type="submit" class="btn primary">${isNew?'Add':'Save'}</button></div></form>`;
+  let usage=+s.usage||0,wsVal=ws;
+  const f=d.querySelector('#ef');
+  const upd8=()=>{const amt=parseFloat(f.amount.value)||0,n=members.length+(members.length?1:Math.max(1,Number(s.shareCount)||1)),cyc=CYCLES[f.cycle.value];
+    $('#shareOut').textContent=n>1?`${fmt(amt/n)}/${cyc.per} (split ${n} ways)`:`${fmt(amt)}/${cyc.per} (not shared)`;
+    const ap=parseFloat(f.altPrice.value);if(ap>0&&amt>0){const cur=amt*cyc.m*12/n,alt=ap*CYCLES[f.altCycle.value].m*12/n,dlt=cur-alt;
+      $('#altOut').innerHTML=dlt>0?`<span class="saved">Saves ${fmt0(dlt)} a year</span> (${fmt0(cur)} → ${fmt0(alt)})`:`Costs ${fmt0(-dlt)} more a year than your current plan.`}else $('#altOut').textContent=''};
+  ['amount','cycle','altPrice','altCycle'].forEach(k=>f[k].addEventListener('input',upd8));upd8();
+  f.trial.addEventListener('change',()=>{$('#trialWrap').style.display=f.trial.checked?'':'none';if(f.trial.checked&&!f.trialEnd.value)f.trialEnd.value=f.nextDate.value});
+  f.name.addEventListener('change',()=>{const m=DIRECTORY.find(x=>x[0].toLowerCase()===f.name.value.trim().toLowerCase());if(m){f.category.value=m[1];if(!f.cancelUrl.value)f.cancelUrl.value=m[2]}});
+  d.querySelectorAll('#usage button').forEach(b=>b.onclick=()=>{usage=+b.dataset.u;d.querySelectorAll('#usage button').forEach(x=>x.classList.toggle('on',x===b))});
+  d.querySelectorAll('#wsSeg button').forEach(b=>b.onclick=()=>{wsVal=b.dataset.w;d.querySelectorAll('#wsSeg button').forEach(x=>x.classList.toggle('on',x===b));$('#bizBlock').style.display=wsVal==='business'?'':'none'});
+  const chips=$('#members');
+  const bindChip=c=>c.onclick=()=>{const id=c.dataset.p;if(members.includes(id))members=members.filter(x=>x!==id);else members.push(id);c.classList.toggle('on',members.includes(id));upd8()};
+  chips.querySelectorAll('[data-p]').forEach(bindChip);
+  chips.addEventListener('click',e=>{if(e.target.closest('.chip.add'))addPersonInline(chips,p=>{if(!chips.querySelector(`[data-p="${p.id}"]`)){const c=document.createElement('button');c.type='button';c.className='chip';c.dataset.p=p.id;c.textContent=p.name;chips.insertBefore(c,chips.querySelector('.chip.add'));bindChip(c);
+      const o=document.createElement('option');o.value=p.id;o.textContent=p.name;f.payer.appendChild(o)}
+    if(!members.includes(p.id)){members.push(p.id);chips.querySelector(`[data-p="${p.id}"]`).classList.add('on')}upd8()})});
+  d.querySelector('[data-close]').onclick=()=>d.close();
+  d.querySelectorAll('[data-assist]').forEach(b=>b.onclick=()=>{d.close();openAssist(s.id,b.dataset.assist)});
+  const del=d.querySelector('[data-del]');if(del)del.onclick=async()=>{if(await askConfirm(`Delete ${s.name}? This can't be undone.`,'Delete',true)){state.subs=state.subs.filter(x=>x.id!==s.id);save();d.close();render();toast('Deleted')}};
+  f.onsubmit=e=>{e.preventDefault();
+    const amt=Math.round(parseFloat(f.amount.value)*100)/100;if(!(amt>=0)||!f.name.value.trim()||!f.nextDate.value){toast('Name, price and next charge are required');return}
+    const hist=(s.priceHistory||[]).slice();if(!hist.length||hist[hist.length-1].amount!==amt)hist.push({date:iso(today()),amount:amt});
+    const payer=f.payer.value;if(payer!=='me'&&!members.includes(payer))members.push(payer);
+    const numOr=v=>v===''?'':Math.max(0,parseInt(v)||0);
+    const upd={name:f.name.value.trim(),amount:amt,cycle:f.cycle.value,nextDate:f.nextDate.value,category:f.category.value,payment:f.payment.value.trim(),members,payer,shareCount:members.length?1:s.shareCount,
+      workspace:wsVal,seats:numOr(f.seats.value),seatsUsed:numOr(f.seatsUsed.value),owner:f.owner.value.trim(),noticeDays:numOr(f.noticeDays.value),autoRenew:f.autoRenew.checked,
+      altLabel:f.altLabel.value.trim(),altPrice:f.altPrice.value===''?'':Math.round(parseFloat(f.altPrice.value)*100)/100,altCycle:f.altCycle.value,
+      trial:f.trial.checked,trialEnd:f.trial.checked?f.trialEnd.value:'',usage,cancelUrl:f.cancelUrl.value.trim(),notes:f.notes.value,priceHistory:hist};
+    if(!isNew){upd.status=f.status.value;if(upd.status==='cancelled'&&s.status!=='cancelled'){upd.cancelledAt=iso(today());logSaving(s,'cancel',yearly(s))}
+      if(upd.status==='active'&&s.status==='cancelled'){state.savings=state.savings.filter(x=>!(x.subId===s.id&&x.type==='cancel'));delete s.postCancelCharge}}
+    if(upd.trial&&upd.trialEnd)upd.nextDate=upd.trialEnd;
+    if(isNew)state.subs.push(Object.assign(s,upd));else Object.assign(s,upd);
+    save();d.close();render();toast(isNew?'Added '+upd.name:'Saved');
+  };
+  d.showModal();
+}
+
+/* ---------- cancel & negotiate assistants ---------- */
+function cancelMsg(s,acct){return `Hello,
+
+Please cancel my ${s.name} subscription${acct?` on the account ${acct}`:''}, effective immediately, and stop all future charges. I don't want it to renew${s.trial?' or convert to a paid plan':''}.
+
+Please reply to confirm the cancellation and the date it takes effect.
+
+Thank you`}
+function negotiateScript(s,o){
+  const per=CYCLES[s.cycle].per,h=s.priceHistory||[],first=h.length?parseISO(h[0].date):null;
+  const since=first&&daysBetween(first,today())>90?`since ${first.toLocaleDateString(undefined,{month:'long',year:'numeric'})}`:'for a while';
+  const inc=h.length>1&&h[h.length-1].amount>h[0].amount?` My price has gone up from ${fmt(h[0].amount)} to ${fmt(h[h.length-1].amount)}.`:'';
+  const comp=o.compPrice>0?` ${o.compName||'A competitor'} is offering ${fmt(o.compPrice)}/${per} for something similar.`:'';
+  return `Hi, I'm calling about my ${s.name} account${o.acct?` (${o.acct})`:''}. I've been a customer ${since}, and I'm paying ${fmt(s.amount)}/${per}.${inc}${comp}
+
+I'd like to stay, but I need the price closer to ${fmt(o.target)}/${per}. What discounts, loyalty or retention offers can you apply to my account?
+
+If nothing is available, I'd like to cancel today.
+
+—
+Tips: ask for the retention or loyalty team. If they offer a promo, ask whether it can run for 12 months. Get the new price and how long it lasts in writing, and note the rep's name and a reference number.`}
+async function copyText(t){try{await navigator.clipboard.writeText(t);toast('Copied')}catch(e){const ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();let ok=false;try{ok=document.execCommand('copy')}catch(_){}ta.remove();toast(ok?'Copied':'Select the text and copy it')}}
+function openAssist(id,mode){
+  const s=state.subs.find(x=>x.id===id);if(!s)return;const d=$('#dlg');const per=CYCLES[s.cycle].per;
+  if(mode==='cancel'){
+    d.innerHTML=`<div class="dlg-h"><h3>Cancel ${esc(s.name)}</h3><button type="button" class="btn ghost sm" data-close aria-label="Close">${icon('x')}</button></div>
+    <div class="dlg-b"><p class="muted" style="margin-top:0">Cancelling saves you <span class="saved">${fmt0(yearly(s))} a year</span>. ${s.trial&&s.trialEnd?'Your trial ends '+relDays(parseISO(s.trialEnd))+'.':'Next charge '+relDays(parseISO(s.nextDate))+'.'}</p>
+    <ol class="steps">
+      <li><b>Cancel on their site or app.</b>${s.cancelUrl?`<a class="btn" href="${esc(s.cancelUrl)}" target="_blank" rel="noopener">Open ${esc(s.name)} account page ${icon('ext')}</a>`:`<span class="muted">No link saved. Check your receipt email for a "manage subscription" link, or search their help center for "cancel". Subscriptions bought through Apple or Google are cancelled in your phone's subscription settings.</span>`}</li>
+      <li><b>No self-serve option? Send a written request.</b><label class="f" style="margin-bottom:8px"><span>Account email or username (optional)</span><input type="text" id="acct" autocomplete="off"></label><textarea id="msg" rows="8"></textarea><button class="btn sm" id="copyMsg" style="margin-top:8px">${icon('copy')} Copy message</button></li>
+      <li><b>Record the confirmation.</b><div class="form"><label class="f"><span>Confirmation number or email subject</span><input type="text" id="ref"></label><label class="f"><span>Cancelled on</span><input type="date" id="cdate" value="${iso(today())}"></label></div></li>
+    </ol>
+    <p class="note">Next month, import a statement on the Import tab. The app flags any charge from ${esc(s.name)} after this date.</p></div>
+    <div class="dlg-f"><button class="btn" data-close>Not now</button><button class="btn primary" id="doCancel">Mark as cancelled</button></div>`;
+    const msg=$('#msg'),acct=$('#acct');let edited=false;msg.value=cancelMsg(s,'');msg.oninput=()=>edited=true;acct.oninput=()=>{if(!edited)msg.value=cancelMsg(s,acct.value.trim())};
+    $('#copyMsg').onclick=()=>copyText(msg.value);
+    $('#doCancel').onclick=()=>{logSaving(s,'cancel',yearly(s),$('#ref').value.trim());s.status='cancelled';s.cancelledAt=$('#cdate').value||iso(today());s.cancelRef=$('#ref').value.trim();s.trial=false;
+      save();d.close();render();toast(`${s.name} cancelled · ${fmt0(yearly(s))}/yr saved`)};
+  } else {
+    const target=Math.round(s.amount*0.8*100)/100;
+    d.innerHTML=`<div class="dlg-h"><h3>Negotiate ${esc(s.name)}</h3><button type="button" class="btn ghost sm" data-close aria-label="Close">${icon('x')}</button></div>
+    <div class="dlg-b"><p class="muted" style="margin-top:0">Retention teams often have discounts they only offer when you ask, especially once you say you're ready to cancel. This works best for phone, internet, insurance, news, software and streaming.</p>
+    <div class="form"><label class="f"><span>Competitor or promo (optional)</span><input type="text" id="compName" placeholder="e.g. Verizon promo"></label><label class="f"><span>Their price per ${per}</span><input type="number" id="compPrice" step="0.01" min="0"></label>
+    <label class="f"><span>Your target per ${per}</span><input type="number" id="target" step="0.01" min="0" value="${target}"></label><label class="f"><span>Account (optional)</span><input type="text" id="acct" autocomplete="off"></label>
+    <label class="f full"><div class="lbl-row"><span>What to say</span><button type="button" class="btn sm" id="copyScript">${icon('copy')} Copy</button></div><textarea id="script" rows="10" style="margin-top:4px"></textarea></label></div>
+    <div class="sub-block" style="margin-top:14px"><b>How did it go?</b><div class="form" style="margin-top:8px"><label class="f"><span>New price per ${per}</span><input type="number" id="newPrice" step="0.01" min="0" placeholder="${s.amount}"></label><div class="f"><span style="display:block;margin-bottom:4px">You'd save</span><div id="negOut" class="saved num" style="padding:9px 0">—</div></div></div></div></div>
+    <div class="dlg-f"><button class="btn left" id="toCancel">They won't budge — cancel</button><button class="btn" data-close>Close</button><button class="btn primary" id="saveNeg">Save new price</button></div>`;
+    const g=()=>negotiateScript(s,{compName:$('#compName').value.trim(),compPrice:parseFloat($('#compPrice').value)||0,target:parseFloat($('#target').value)||target,acct:$('#acct').value.trim()});
+    let edited=false;const sc=$('#script');sc.value=g();sc.oninput=()=>edited=true;['compName','compPrice','target','acct'].forEach(k=>$('#'+k).oninput=()=>{if(!edited)sc.value=g()});
+    $('#copyScript').onclick=()=>copyText(sc.value);
+    const np=$('#newPrice');np.oninput=()=>{const v=parseFloat(np.value);$('#negOut').textContent=v>=0&&v<s.amount?fmt0((s.amount-v)*CYCLES[s.cycle].m*12/share(s))+' a year':'—'};
+    $('#toCancel').onclick=()=>openAssist(s.id,'cancel');
+    $('#saveNeg').onclick=()=>{const v=Math.round(parseFloat(np.value)*100)/100;if(!(v>=0)){toast('Enter the new price');return}
+      if(v<s.amount)logSaving(s,'negotiate',(s.amount-v)*CYCLES[s.cycle].m*12/share(s),'From '+fmt(s.amount)+' to '+fmt(v));
+      s.priceHistory=(s.priceHistory||[]).concat([{date:iso(today()),amount:v}]);const lower=v<s.amount;s.negotiated={date:iso(today()),from:s.amount,to:v};s.amount=v;save();d.close();render();toast(lower?'New price saved · savings logged':'New price saved')};
+  }
+  d.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>d.close());
+  if(!d.open)d.showModal();
+}
+async function switchPlan(id){const s=state.subs.find(x=>x.id===id);if(!s||!(s.altPrice>0))return;const sv=altSaving(s);
+  if(!(await askConfirm(`Switch ${s.name} to ${s.altLabel||'the cheaper plan'} at ${fmt(s.altPrice)}/${CYCLES[s.altCycle||'yearly'].per}? That saves about ${fmt0(sv)} a year. Remember to make the change with ${s.name} too.`,'Switch')))return;
+  logSaving(s,'switch',sv,'To '+(s.altLabel||'cheaper plan'));s.priceHistory=(s.priceHistory||[]).concat([{date:iso(today()),amount:s.altPrice}]);s.amount=s.altPrice;s.cycle=s.altCycle||'yearly';s.altPrice='';s.altLabel='';save();render();toast(`Switched · ${fmt0(sv)}/yr saved`)}
+
+/* ---------- exports ---------- */
+function exportCsv(){
+  const h=['Name','Status','Workspace','Price','Billed','Your share','Monthly cost','Yearly cost','Next charge','Category','Paid with','Paid by','Shared with','Seats','Seats in use','Owner','Notice days','Trial ends','Usage','Cancel link','Notes'];
+  const q=v=>{v=String(v??'');return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
+  const rows=state.subs.map(s=>[s.name,s.status,s.workspace||'personal',s.amount,CYCLES[s.cycle].label,yourAmount(s).toFixed(2),monthly(s).toFixed(2),yearly(s).toFixed(2),s.nextDate,s.category,s.payment,personName(s.payer||'me'),(s.members||[]).map(personName).join('; '),s.seats,s.seatsUsed,s.owner,s.noticeDays,s.trialEnd,USAGE[+s.usage||0],s.cancelUrl,s.notes]);
+  download('subscriptions.csv',[h,...rows].map(r=>r.map(q).join(',')).join('\n'),'text/csv');
+}
+function exportIcs(){
+  const fr={weekly:'WEEKLY',monthly:'MONTHLY',quarterly:'MONTHLY;INTERVAL=3',yearly:'YEARLY'};
+  const e=s=>String(s).replace(/[\\;,]/g,m=>'\\'+m).replace(/\n/g,'\\n');
+  const stamp=new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d+/,'');
+  const ev=active().map(s=>{const d=s.nextDate.replace(/-/g,'');
+    const lines=['BEGIN:VEVENT','UID:'+s.id+'@emmersontools.com','DTSTAMP:'+stamp,'DTSTART;VALUE=DATE:'+d,'SUMMARY:'+e(`${s.trial?'Trial ends: ':''}${s.name} – ${fmt(s.amount)}`),'DESCRIPTION:'+e(`${CYCLES[s.cycle].label} subscription${s.cancelUrl?'\nManage: '+s.cancelUrl:''}`),'TRANSP:TRANSPARENT'];
+    if(!s.trial)lines.push('RRULE:FREQ='+fr[s.cycle]);
+    lines.push('BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:'+e(s.name+' charges soon'),'TRIGGER:-P'+(state.settings.alertDays||3)+'D','END:VALARM','END:VEVENT');return lines.join('\r\n')});
+  download('subscription-renewals.ics',['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Emmerson Tools//Subscriptions//EN','CALSCALE:GREGORIAN','X-WR-CALNAME:Subscription renewals',...ev,'END:VCALENDAR'].join('\r\n'),'text/calendar');
+}
+function sample(){
+  const t=today(),d=n=>iso(new Date(t.getFullYear(),t.getMonth(),t.getDate()+n));
+  const back=n=>iso(new Date(t.getFullYear(),t.getMonth(),t.getDate()-n));
+  state.settings.people=[{id:'me',name:'You'},{id:'p_jordan',name:'Jordan'},{id:'p_sam',name:'Sam'},{id:'p_alex',name:'Alex'}];state.settings.workspace='all';
+  state.subs=[
+    newSub({name:'Netflix',amount:17.99,cycle:'monthly',nextDate:d(2),category:'Streaming',payment:'Visa ••4417',cancelUrl:DIRECTORY[0][2],usage:3,priceHistory:[{date:back(200),amount:15.49},{date:back(20),amount:17.99}]}),
+    newSub({name:'Hulu',amount:9.99,cycle:'monthly',nextDate:d(11),category:'Streaming',cancelUrl:DIRECTORY[1][2],usage:1,members:['p_jordan'],payer:'p_jordan',notes:'Jordan pays, we split it'}),
+    newSub({name:'Max',amount:16.99,cycle:'monthly',nextDate:d(5),category:'Streaming',trial:true,trialEnd:d(5),cancelUrl:DIRECTORY[3][2]}),
+    newSub({name:'Spotify',amount:19.99,cycle:'monthly',nextDate:d(8),category:'Music',payment:'Amex ••1002',members:['p_jordan','p_sam','p_alex'],usage:3,notes:'Family plan',cancelUrl:DIRECTORY[7][2]}),
+    newSub({name:'Adobe Creative Cloud',amount:59.99,cycle:'monthly',nextDate:d(16),category:'Software',payment:'Amex ••1002',usage:2,cancelUrl:DIRECTORY[13][2],altLabel:'Annual plan',altPrice:599.88,altCycle:'yearly'}),
+    newSub({name:'Slack Pro',amount:87.5,cycle:'monthly',nextDate:d(9),category:'Software',payment:'Company Visa ••8820',workspace:'business',seats:10,seatsUsed:7,owner:'Ops',usage:3}),
+    newSub({name:'Zoom Workplace',amount:1499,cycle:'yearly',nextDate:d(42),category:'Software',payment:'Company Visa ••8820',workspace:'business',seats:10,seatsUsed:10,owner:'IT',noticeDays:30,usage:2}),
+    newSub({name:'Comcast Internet',amount:89.99,cycle:'monthly',nextDate:d(19),category:'Utilities & phone',usage:3,notes:'Promo rate ended in the spring',priceHistory:[{date:back(220),amount:64.99},{date:back(150),amount:89.99}]}),
+    newSub({name:'Microsoft 365',amount:99.99,cycle:'yearly',nextDate:d(40),category:'Software',usage:3,cancelUrl:DIRECTORY[12][2]}),
+    newSub({name:'Amazon Prime',amount:139,cycle:'yearly',nextDate:d(73),category:'Shopping & delivery',usage:3,cancelUrl:DIRECTORY[14][2]}),
+    newSub({name:'iCloud+',amount:2.99,cycle:'monthly',nextDate:d(21),category:'Cloud storage',usage:3}),
+    newSub({name:'Dropbox',amount:11.99,cycle:'monthly',nextDate:d(1),category:'Cloud storage',usage:1,cancelUrl:DIRECTORY[11][2]}),
+    newSub({name:'Peloton App',amount:12.99,cycle:'monthly',nextDate:d(26),category:'Fitness & health',usage:1}),
+    newSub({name:'The New York Times',amount:25,cycle:'monthly',nextDate:d(14),category:'News & reading',usage:2,cancelUrl:DIRECTORY[16][2]}),
+    newSub({name:'Xbox Game Pass',amount:16.99,cycle:'monthly',nextDate:d(30),category:'Gaming',status:'cancelled',cancelledAt:back(40),cancelRef:'XB-20931'})
+  ];
+  state.subs.forEach(s=>{if(!s.priceHistory.length)s.priceHistory=[{date:back(400),amount:s.amount}]});
+  const xb=state.subs.find(s=>s.name==='Xbox Game Pass');state.savings=[{id:uid(),date:back(40),subId:xb.id,name:xb.name,type:'cancel',yearly:203.88,note:'XB-20931'}];
+  state.settings.budget=state.settings.budget||200;save();render();toast('Sample data loaded');
+}
+
+/* ---------- events ---------- */
+function bindView(){
+  const v=$('#view');
+  v.querySelectorAll('[data-open]').forEach(el=>el.onclick=e=>{e.preventDefault();e.stopPropagation();openEditor(el.dataset.open)});
+  v.querySelectorAll('[data-go]').forEach(el=>el.onclick=()=>go(el.dataset.go));
+  v.querySelectorAll('[data-cal]').forEach(el=>el.onclick=()=>{const t=today();const k=+el.dataset.cal;const b=ui.calMonth?new Date(ui.calMonth):new Date(t.getFullYear(),t.getMonth(),1);ui.calMonth=k===0?null:new Date(b.getFullYear(),b.getMonth()+k,1).getTime();render()});
+  v.querySelectorAll('[data-alert]').forEach(el=>el.onclick=()=>{const a=el.dataset.alert,id=el.dataset.id;
+    if(a==='cancelAssist')openAssist(id,'cancel');else if(a==='negotiate')openAssist(id,'negotiate');else if(a==='switch')switchPlan(id);
+    else if(a==='dismiss'){const s=state.subs.find(x=>x.id===id);if(s){delete s.postCancelCharge;save();render()}}
+    else if(a==='settings')go('settings');else if(a.startsWith('filter:')){ui.cat=a.slice(7);ui.status='active';go('subs')}else openEditor(id)});
+  v.querySelectorAll('[data-act]').forEach(el=>el.onclick=async()=>{const a=el.dataset.act;
+    if(a==='add')openEditor();else if(a==='sample'){if(!state.subs.length||await askConfirm('Replace your current subscriptions with sample data?','Replace',true))sample()}
+    else if(a==='ics'){if(!active().length)return toast('No active subscriptions');exportIcs()}
+    else if(a==='exportCsv')exportCsv();else if(a==='exportJson')download('subscriptions-backup-'+iso(today())+'.json',JSON.stringify(state,null,2),'application/json');
+    else if(a==='wipe'){if(await askConfirm('Delete every subscription and setting stored in this browser? Download a backup first if you might need it.','Delete all',true)){state=JSON.parse(JSON.stringify(defaults));save();importRows=importFound=null;render();toast('All data deleted')}}
+    else if(a==='copySettle')copyText(settleText());
+    else if(a==='detect')detect();else if(a==='addFound')addFound();else if(a==='clearImport'){importRows=importFound=null;render()}});
+  const q=$('#q');if(q){q.oninput=()=>{ui.q=q.value;const pos=q.selectionStart;render();const n=$('#q');n.focus();n.setSelectionRange(pos,pos)}}
+  const bind=(sel,key)=>{const el=$(sel);if(el)el.onchange=()=>{ui[key]=el.value;render()}};bind('#fcat','cat');bind('#fstatus','status');bind('#fsort','sort');
+  const drop=$('#drop'),file=$('#file');
+  if(drop){drop.onclick=()=>file.click();file.onchange=()=>file.files[0]&&file.files[0].text().then(loadCSV);
+    drop.ondragover=e=>{e.preventDefault();drop.classList.add('over')};drop.ondragleave=()=>drop.classList.remove('over');
+    drop.ondrop=e=>{e.preventDefault();drop.classList.remove('over');const f=e.dataTransfer.files[0];if(f)f.text().then(loadCSV)}}
+  const pc=$('#peopleChips');if(pc){
+    pc.querySelectorAll('[data-rmp]').forEach(x=>{const rm=async()=>{const id=x.dataset.rmp;if(!(await askConfirm(`Remove ${personName(id)}? Subscriptions shared with them will no longer be split with them.`,'Remove',true)))return;
+      state.settings.people=people().filter(p=>p.id!==id);state.subs.forEach(s=>{s.members=(s.members||[]).filter(m=>m!==id);if(s.payer===id)s.payer='me'});save();render()};x.onclick=rm;x.onkeydown=e=>{if(e.key==='Enter')rm()}});
+    pc.querySelector('.chip.add').onclick=()=>addPersonInline(pc,()=>render())}
+  const sB=$('#sBudget');if(sB){
+    sB.onchange=()=>{state.settings.budget=Math.max(0,parseFloat(sB.value)||0);save();renderTabs();toast('Budget saved')};
+    $('#sCur').onchange=e=>{state.settings.currency=e.target.value;save();toast('Currency saved')};
+    $('#sDays').onchange=e=>{state.settings.alertDays=+e.target.value;save();renderTabs();toast('Saved')};
+    $('#sNotify').onchange=async e=>{if(e.target.checked){const p=await Notification.requestPermission();state.settings.notify=p==='granted';if(p!=='granted')e.target.checked=false}else state.settings.notify=false;save();if(state.settings.notify){state.settings.lastNotified='';notify()}};
+    $('#restore').onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(async t=>{let d;try{d=JSON.parse(t);if(!Array.isArray(d.subs))throw 0}catch(err){toast('That file is not a valid backup');return}{if(await askConfirm(`Restore ${d.subs.length} subscriptions from this backup? Your current data will be replaced.`,'Restore')){state={subs:d.subs,savings:Array.isArray(d.savings)?d.savings:[],settings:Object.assign({},defaults.settings,d.settings)};if(!state.settings.people.some(p=>p.id==='me'))state.settings.people.unshift({id:'me',name:'You'});save();render();toast('Backup restored')}}})};
+  }
+}
+document.addEventListener('click',e=>{const t=e.target.closest('[data-tab]');if(t)go(t.dataset.tab)});
+$('#addBtn').onclick=()=>openEditor();
+$('#wsSel').onchange=e=>{state.settings.workspace=e.target.value;save();render()};
+$('#dlg').addEventListener('click',e=>{if(e.target===$('#dlg'))$('#dlg').close()});
+window.addEventListener('hashchange',()=>{const t=location.hash.slice(1);if(TABS.some(x=>x[0]===t)&&t!==tab){tab=t;render()}});
+
+function notify(){
+  try{if(!state.settings.notify||!('Notification' in window)||Notification.permission!=='granted')return;
+    const k=iso(today());if(state.settings.lastNotified===k)return;
+    const a=computeAlerts().filter(x=>x.lvl!=='info');if(!a.length)return;
+    const strip=h=>h.replace(/<[^>]+>/g,'').replace(/&amp;/g,'&').replace(/&#39;/g,"'").replace(/&quot;/g,'"').replace(/&lt;/g,'<').replace(/&gt;/g,'>');
+    new Notification(a.length===1?'Subscription alert':a.length+' subscription alerts',{body:a.slice(0,3).map(x=>strip(x.txt)).join('\n'),tag:'subs-'+k});
+    state.settings.lastNotified=k;save();
+  }catch(e){}
+}
+
+render();notify();
+})();
+</script>
+</body>
+</html>

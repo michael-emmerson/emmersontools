@@ -1,0 +1,26 @@
+# Cloudflare / Node
+node_modules/
+.wrangler/
+.dev.vars
+
+# RRR Coffee: business data and credentials stay out of the repo
+apps/rrr-coffee/*.xlsx
+apps/rrr-coffee/settings.json
+apps/rrr-coffee/settings.json.tmp
+apps/rrr-coffee/backups/
+apps/rrr-coffee/.venv/
+~$*.xlsx
+*.tmp
+*.bak
+.env
+.env.*
+
+# JSM Receipt Maker: never commit receipts or customer data
+Receipts/
+*.pdf
+
+# Python / OS clutter
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db

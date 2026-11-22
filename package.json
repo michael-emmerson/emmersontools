@@ -1,0 +1,19 @@
+{
+  "name": "emmersontools",
+  "private": true,
+  "description": "emmersontools.com: homepage plus Subscription Manager, JSM Receipt Maker and RRR Coffee, served by one Cloudflare Worker",
+  "type": "module",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "check": "wrangler deploy --dry-run",
+    "dev": "wrangler dev",
+    "test": "node --test worker/*.test.js",
+    "test:rrr": "cd apps/rrr-coffee && python3 -m unittest discover -s tests"
+  },
+  "dependencies": {
+    "@cloudflare/containers": "0.3.7"
+  },
+  "devDependencies": {
+    "wrangler": "4.166.0"
+  }
+}

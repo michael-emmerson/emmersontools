@@ -1,0 +1,40 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // One Worker serves all of emmersontools.com:
+  //   /                    homepage            (static, public/)
+  //   /subscriptions/      Subscription Manager (static, public/subscriptions/)
+  //   /jsm-receipt-maker/  JSM Receipt Maker    (static, public/jsm-receipt-maker/)
+  //   /rrr-coffee/         RRR Coffee           (Worker → container, behind Cloudflare Access)
+  "name": "emmersontools",
+  "main": "worker/index.js",
+  "compatibility_date": "2026-11-01",
+  "observability": { "enabled": true },
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "none",
+    // Only RRR Coffee needs code; everything else is served straight from public/.
+    "run_worker_first": ["/rrr-coffee", "/rrr-coffee/*"]
+  },
+  // The RRR Coffee Python app runs in a container built from apps/rrr-coffee/Dockerfile.
+  "containers": [
+    {
+      "class_name": "InventoryContainer",
+      "image": "./apps/rrr-coffee/Dockerfile",
+      "instance_type": "basic",
+      "max_instances": 1
+    }
+  ],
+  "durable_objects": {
+    "bindings": [{ "name": "APP", "class_name": "InventoryContainer" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["InventoryContainer"] }],
+  // RRR Coffee's spreadsheet, settings.json and backups (the container's own disk is wiped when it stops).
+  // Same bucket the old rrr-coffee-webapp Worker used, so nothing needs to be moved.
+  "r2_buckets": [{ "binding": "FILES", "bucket_name": "rrr-coffee-inventory" }]
+  // Secrets (set in the dashboard or with `wrangler secret put`, never in this file):
+  //   ACCESS_TEAM_DOMAIN  e.g. yourteam.cloudflareaccess.com
+  //   ACCESS_AUD          Audience (AUD) tag of the Access application protecting emmersontools.com/rrr-coffee
+  //   SHOPIFY_STORE, SHOPIFY_CLIENT_ID, SHOPIFY_CLIENT_SECRET  (optional; can be entered in the app instead)
+}

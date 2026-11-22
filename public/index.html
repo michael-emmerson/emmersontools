@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Emmerson Tools</title>
+  <meta name="description" content="A small collection of practical web tools by Michael Emmerson.">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <style>
+    :root {
+      --bg: #f6f4ef;
+      --surface: #ffffff;
+      --ink: #1c1d1f;
+      --muted: #6b6d70;
+      --line: #e3dfd6;
+      --accent: #2f5d50;
+      --accent-soft: #e5eee9;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #141516;
+        --surface: #1d1f21;
+        --ink: #ecebe7;
+        --muted: #9a9c9f;
+        --line: #2c2f32;
+        --accent: #7fbfa8;
+        --accent-soft: #1f2d28;
+      }
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+    .wrap { max-width: 880px; margin: 0 auto; padding: 72px 24px 48px; }
+
+    header { margin-bottom: 48px; }
+    .mark {
+      display: inline-flex; align-items: center; gap: 10px;
+      font-weight: 600; letter-spacing: .02em; font-size: 15px; color: var(--muted);
+    }
+    .mark svg { width: 28px; height: 28px; }
+    h1 {
+      font-family: ui-serif, Georgia, "Times New Roman", serif;
+      font-weight: 500; font-size: clamp(36px, 6vw, 56px);
+      line-height: 1.05; letter-spacing: -.02em;
+      margin: 28px 0 14px;
+    }
+    .lede { font-size: 18px; color: var(--muted); max-width: 560px; margin: 0; }
+
+    .section-label {
+      font-size: 12px; text-transform: uppercase; letter-spacing: .12em;
+      color: var(--muted); margin: 0 0 14px;
+    }
+    .tools { list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; }
+    @media (min-width: 680px) { .tools { grid-template-columns: 1fr 1fr; } }
+
+    .tool a {
+      display: flex; flex-direction: column; height: 100%;
+      background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+      padding: 22px 22px 18px; color: inherit; text-decoration: none;
+      transition: border-color .15s ease, transform .15s ease, box-shadow .15s ease;
+    }
+    .tool a:hover, .tool a:focus-visible {
+      border-color: var(--accent); transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,0,0,.06); outline: none;
+    }
+    .icon {
+      width: 40px; height: 40px; border-radius: 10px;
+      background: var(--accent-soft); color: var(--accent);
+      display: grid; place-items: center; margin-bottom: 16px;
+    }
+    .icon svg { width: 22px; height: 22px; }
+    .tool h2 { font-size: 19px; font-weight: 600; margin: 0 0 6px; }
+    .tool p { margin: 0 0 18px; color: var(--muted); font-size: 15px; flex: 1; }
+    .url {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 13px; color: var(--accent);
+      display: flex; justify-content: space-between; align-items: center; gap: 8px;
+      border-top: 1px solid var(--line); padding-top: 14px;
+    }
+    .url .arrow { transition: transform .15s ease; }
+    .tool a:hover .arrow { transform: translateX(3px); }
+
+    footer {
+      margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--line);
+      font-size: 13px; color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="mark">
+        <svg viewBox="0 0 32 32" aria-hidden="true">
+          <rect x="1" y="1" width="30" height="30" rx="8" fill="currentColor" opacity=".12"/>
+          <path d="M10 9h12M10 16h9M10 23h12M10 9v14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none"/>
+        </svg>
+        emmersontools.com
+      </div>
+      <h1>Emmerson Tools</h1>
+      <p class="lede">A small collection of practical web tools. Pick one to get started.</p>
+    </header>
+
+    <main>
+      <p class="section-label">Tools</p>
+      <!-- To add a tool: copy one <li class="tool"> block and change the link (/folder-name/), name and description. -->
+      <ul class="tools">
+        <li class="tool">
+          <a href="/subscriptions/">
+            <span class="icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/><path d="M12 7v5l3 2"/></svg>
+            </span>
+            <h2>Subscription Manager</h2>
+            <p>Keep track of recurring subscriptions, what they cost, and when they renew.</p>
+            <span class="url">emmersontools.com/subscriptions <span class="arrow">→</span></span>
+          </a>
+        </li>
+        <li class="tool">
+          <a href="/jsm-receipt-maker/">
+            <span class="icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12v20l-3-2-3 2-3-2-3 2z"/><path d="M9 7h6M9 11h6M9 15h4"/></svg>
+            </span>
+            <h2>JSM Receipt Maker</h2>
+            <p>Create PDF sales and purchase receipts for Just Shoot Me, with a running receipt log.</p>
+            <span class="url">emmersontools.com/jsm-receipt-maker <span class="arrow">→</span></span>
+          </a>
+        </li>
+        <li class="tool">
+          <a href="/rrr-coffee/">
+            <span class="icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h13v5a6 6 0 0 1-6 6h-1a6 6 0 0 1-6-6z"/><path d="M17 10h1.5a2.5 2.5 0 0 1 0 5H17"/><path d="M8 2.5c0 1.5 1 1.5 1 3M12 2.5c0 1.5 1 1.5 1 3"/></svg>
+            </span>
+            <h2>RRR Coffee</h2>
+            <p>Manage Rainy Rooster Roasting coffee inventory: origins, tasting notes, cupping scores, costs and margins.</p>
+            <span class="url">emmersontools.com/rrr-coffee <span class="arrow">→</span></span>
+          </a>
+        </li>
+      </ul>
+    </main>
+
+    <footer>
+      &copy; <span id="y">2026</span> Michael Emmerson
+    </footer>
+  </div>
+  <script>document.getElementById('y').textContent = new Date().getFullYear();</script>
+</body>
+</html>

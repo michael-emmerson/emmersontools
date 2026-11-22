@@ -1,0 +1,62 @@
+JUST SHOOT ME RECEIPT MAKER
+===========================
+
+Start it
+  Online: open https://emmersontools.com/jsm-receipt-maker/
+
+  On your Mac (no internet needed): double-click
+  "Start Receipt Maker.command" in this folder (apps/jsm-receipt-maker).
+  A Terminal window opens and the app opens in your browser
+  (http://127.0.0.1:8765). Keep the Terminal window open while you work;
+  close it when you're done.
+
+  If macOS says the file can't be opened, right-click it, choose Open,
+  then Open again. You only need to do that once.
+
+  Or, from Terminal in this folder:
+    python3 server.py
+
+  The app's page itself lives in public/jsm-receipt-maker/ with the rest
+  of the website.
+
+Make a receipt
+  1. Fill in the customer. Receipt # (JSM26-0001, JSM26-0002, ...) and
+     today's date are filled in for you.
+  2. Add items:
+     - Firearm / Accessory: you set the description, serial #, qty and price.
+       Firearms get a $50 transfer fee per firearm automatically (untick the
+       box to leave it off).
+     - Service: classes, gunsmithing, etc. You set the description and price.
+     - Transfer Fee: $50 per firearm, for guns bought elsewhere.
+     - Shipping: $25 per item shipped, or type an override total.
+  3. Click "Download PDF". The browser downloads the PDF (usually to
+     Downloads) and the receipt is added to the Receipt log.
+
+Purchase receipts (buying from a customer)
+  Click "Purchase Receipt" at the top. Enter the seller (name, address,
+  ID) and each firearm or accessory you're buying with the price you're
+  paying. There are no transfer or shipping fees. The PDF has a seller
+  certification and signature lines, and is numbered JSMP26-0001,
+  JSMP26-0002, ... separately from sales.
+
+PDFs are named like "Reed Harmon Receipt 10-27-2026 JSM26-0001.pdf"
+or "Sam Seller Purchase Receipt 10-28-2026 JSMP26-0001.pdf".
+
+Receipt log
+  The panel on the right lists every receipt you've downloaded, newest
+  first, with its number, customer, date and total. Search by name or
+  number, or show only sales or purchases.
+  - Open: puts that receipt back on screen so you can download it again
+    or fix it (downloading again with the same number updates the log).
+  - Remove: takes it off the log (doesn't touch any PDF).
+  - Export CSV: the whole log as a spreadsheet.
+  - Back up log: saves the log to a file. Do this now and then.
+  - Restore / import: load a backup, or select old receipt PDFs to add
+    them to the log by file name (so numbering continues from them).
+  The log is stored in the browser you use, so the copy on your Mac and
+  the online copy each keep their own log. Use Back up / Restore to move
+  it between them.
+
+To change the fee amounts or business details, edit the lines near the
+top of the <script> section in public/jsm-receipt-maker/index.html (TRANSFER_FEE, SHIPPING_FEE,
+BUSINESS).
