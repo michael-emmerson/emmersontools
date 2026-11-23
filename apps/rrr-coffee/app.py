@@ -127,7 +127,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def _host_ok(self):
         if CLOUD:
-            return True  # the Worker in front checks the Cloudflare Access login
+            return True  # Cloudflare Access on emmersontools.com handles login
         host = (self.headers.get("Host") or "").split(":")[0]
         return host in ("localhost", "127.0.0.1", "[::1]")
 

@@ -26,14 +26,13 @@ apps/
   jsm-receipt-maker/          local launcher (server.py, Start Receipt Maker.command) and README
 worker/
   index.js                    the Worker: serves /rrr-coffee/* from the container, everything else from public/
-  access.js                   Cloudflare Access login check for RRR Coffee
 wrangler.jsonc              Worker, static assets, container, Durable Object and R2 configuration
 ```
 
 How requests are handled:
 
 - `/`, `/subscriptions/…`, `/jsm-receipt-maker/…`, `/coffee-chart-builder/…`, `/ai-readiness-rubric/…` are plain files from `public/`. They never run any code. `/subscriptions`, `/jsm-receipt-maker`, `/coffee-chart-builder` and `/ai-readiness-rubric` without the slash redirect to the version with it.
-- `/rrr-coffee/…` goes to the Worker, which checks the Cloudflare Access login, removes the `/rrr-coffee` prefix and passes the request to the RRR Coffee container. The app's page uses relative links, so everything it loads stays under `/rrr-coffee/`.
+- `/rrr-coffee/…` goes to the Worker, which removes the `/rrr-coffee` prefix and passes the request to the RRR Coffee container. The app's page uses relative links, so everything it loads stays under `/rrr-coffee/`.
 
 ## Adding a tool
 
@@ -47,7 +46,7 @@ A tool that needs a server goes in `apps/<tool-name>/` and gets a prefix in `run
 
 Pushes to `main` deploy automatically once the repository is connected (step 3 below). To deploy from a computer instead: install Docker (needed to build the RRR Coffee image), then `npm install` and `npx wrangler deploy`.
 
-Checks: `npm test` (Worker routing and login check), `npm run test:rrr` (RRR Coffee app; copy the spreadsheet into `apps/rrr-coffee/` first).
+Checks: `npm test` (Worker routing), `npm run test:rrr` (RRR Coffee app; copy the spreadsheet into `apps/rrr-coffee/` first).
 
 ## Moving from the subdomains to this setup (one time)
 
@@ -59,12 +58,8 @@ Today each tool has its own subdomain and its own Cloudflare project. Do these i
    RRR Coffee needs nothing: its spreadsheet is in the R2 bucket `rrr-coffee-inventory`, which this Worker uses too.
 2. **Plan.** RRR Coffee's container needs the **Workers Paid** plan, which you already have for `rrr-coffee-webapp`.
 3. **Create the Worker from this repository.** Cloudflare dashboard → **Workers & Pages** → **Create** → **Import a repository** → pick this repo. Name it `emmersontools`, root directory `/`, deploy command `npx wrangler deploy`. It builds the RRR Coffee image and deploys everything. It will be at `emmersontools.<your-subdomain>.workers.dev` until step 6.
-4. **Login for RRR Coffee (Cloudflare Access).** **Zero Trust → Access → Applications → Add an application → Self-hosted.** Add the public hostname `emmersontools.com` with path `rrr-coffee` (this covers everything under it). Set the policy to **Allow** only your own email address. Copy the application's **Audience (AUD) tag**. Your team domain looks like `yourteam.cloudflareaccess.com` (Zero Trust → Settings).
-5. **Secrets.** Worker `emmersontools` → **Settings → Variables and Secrets**, add as type **Secret**:
-   - `ACCESS_TEAM_DOMAIN`: the team domain
-   - `ACCESS_AUD`: the Audience tag from step 4 (the new application's tag, not the old `workers.dev` one)
-   - Optional: `SHOPIFY_STORE`, `SHOPIFY_CLIENT_ID`, `SHOPIFY_CLIENT_SECRET`, copied from the old `rrr-coffee-webapp` Worker if you set them there. Settings entered inside the app are already in R2 and carry over.
-   Until both Access secrets are set, `/rrr-coffee/` shows "Login not set up yet" and lets no one in.
+4. **Login (Cloudflare Access).** Access protects the whole site at the root: **Zero Trust → Access → Applications**, a Self-hosted application for `emmersontools.com` with no path, policy **Allow** only your own email address. The Worker does no login check of its own, so RRR Coffee relies on this application. Don't remove it.
+5. **Secrets (optional).** Worker `emmersontools` → **Settings → Variables and Secrets**, add as type **Secret**: `SHOPIFY_STORE`, `SHOPIFY_CLIENT_ID`, `SHOPIFY_CLIENT_SECRET`, copied from the old `rrr-coffee-webapp` Worker if you set them there. Settings entered inside the app are already in R2 and carry over.
 6. **Move the domain.** Open the old homepage Pages project (from `emmersontools-home`) → **Custom domains** → remove `emmersontools.com` (and `www` if used). Then Worker `emmersontools` → **Settings → Domains & Routes → Add → Custom domain** → `emmersontools.com` (and `www.emmersontools.com` if wanted).
 7. **Check:** open https://emmersontools.com/, each tool from the homepage, and sign in at https://emmersontools.com/rrr-coffee/.
 8. **Restore browser data** at the new addresses: **Restore backup** in the Subscription Manager, **Restore / import** in JSM Receipt Maker, using the backups from step 1.
@@ -92,11 +87,11 @@ A single self-contained page (`public/coffee-chart-builder/index.html`) with no 
 
 ## RRR Coffee online
 
-Rainy Rooster Roasting inventory: the Python app in `apps/rrr-coffee/`, run in a Cloudflare container behind Cloudflare Access, with the spreadsheet, settings and backups kept in the private R2 bucket `rrr-coffee-inventory`. See [apps/rrr-coffee/README.md](apps/rrr-coffee/README.md) for what it does and how to run it on a computer.
+Rainy Rooster Roasting inventory: the Python app in `apps/rrr-coffee/`, run in a Cloudflare container behind the site-wide Cloudflare Access login, with the spreadsheet, settings and backups kept in the private R2 bucket `rrr-coffee-inventory`. See [apps/rrr-coffee/README.md](apps/rrr-coffee/README.md) for what it does and how to run it on a computer.
 
 ```
-browser ──► Cloudflare Access (email login, emmersontools.com/rrr-coffee)
-        ──► Worker (worker/index.js): checks the login again, strips /rrr-coffee, sends the request on
+browser ──► Cloudflare Access (email login, all of emmersontools.com)
+        ──► Worker (worker/index.js): strips /rrr-coffee, sends the request on
         ──► Container: apps/rrr-coffee/app.py, exactly as it runs on a computer
                 └── spreadsheet, settings.json and backups ──► R2 bucket "rrr-coffee-inventory"
 ```
