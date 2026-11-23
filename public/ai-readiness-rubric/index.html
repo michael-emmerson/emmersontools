@@ -1,0 +1,254 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>AI Readiness Rubric</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@85,600;85,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: assessor's worksheet. Summary scorecard first, then one rubric table per pillar. */
+:root{
+  --bg:#f6f7f7; --surface:#ffffff; --ink:#17232b; --muted:#5b6971; --line:#d9dfe2;
+  --accent:#1f5f7a; --warn:#a2541b; --warn-bg:#fbefe4;
+  --l1:#e6eef1; --l2:#c4dbe3; --l3:#8dbccb; --l4:#4c93ab; --l5:#1f5f7a;
+  --l-ink-light:#17232b; --l-ink-dark:#ffffff;
+  --f-display:"Archivo","Arial Narrow",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#11181c; --surface:#18222a; --ink:#e4ebee; --muted:#93a3ab; --line:#2c3a43;
+  --accent:#7cc0d6; --warn:#f0a56a; --warn-bg:#3a2617;
+  --l1:#1f2c33; --l2:#24434f; --l3:#2d6377; --l4:#3f88a1; --l5:#79bfd5;
+  --l-ink-light:#e4ebee; --l-ink-dark:#0d1418; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#11181c; --surface:#18222a; --ink:#e4ebee; --muted:#93a3ab; --line:#2c3a43;
+  --accent:#7cc0d6; --warn:#f0a56a; --warn-bg:#3a2617;
+  --l1:#1f2c33; --l2:#24434f; --l3:#2d6377; --l4:#3f88a1; --l5:#79bfd5;
+  --l-ink-light:#e4ebee; --l-ink-dark:#0d1418; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding-block:28px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:32px}
+h1,h2,h3{font-family:var(--f-display);font-stretch:85%;margin:0;text-wrap:balance;letter-spacing:-.01em}
+h1{font-size:2.2rem;line-height:1.1}
+h2{font-size:1.45rem}
+.eyebrow{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.lede{max-width:68ch;color:var(--muted);margin:8px 0 0}
+header{display:grid;gap:14px}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.controls input{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);min-width:0;flex:1 1 240px;max-width:380px}
+button{font:inherit;font-size:.9rem;cursor:pointer;border-radius:6px;padding:8px 14px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+button:focus-visible,select:focus-visible,input:focus-visible,.cell:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.note{font-size:.85rem;color:var(--muted)}
+.example-flag{font-family:var(--f-mono);font-size:.75rem;background:var(--warn-bg);color:var(--warn);padding:3px 8px;border-radius:4px}
+
+/* summary */
+.summary{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:22px;display:grid;grid-template-columns:minmax(0,260px) minmax(0,1fr);gap:28px}
+@media (max-width:760px){.summary{grid-template-columns:minmax(0,1fr)}}
+.overall{display:grid;gap:6px;align-content:start}
+.big{font-family:var(--f-display);font-stretch:85%;font-size:3.4rem;line-height:1;font-variant-numeric:tabular-nums}
+.big small{font-size:1.2rem;color:var(--muted)}
+.lvlname{font-weight:600;font-size:1.1rem}
+.gate{margin-top:10px;font-size:.85rem;background:var(--warn-bg);color:var(--warn);padding:10px 12px;border-radius:6px}
+.bars{display:grid;gap:10px}
+.bar-row{display:grid;grid-template-columns:150px minmax(0,1fr) 92px;gap:12px;align-items:center}
+@media (max-width:520px){.bar-row{grid-template-columns:minmax(0,1fr) 84px}.bar-row .track{grid-column:1/-1;grid-row:2}}
+.bar-row .name{font-weight:500;font-size:.92rem}
+.track{position:relative;height:14px;background:var(--l1);border-radius:3px}
+.fill{position:absolute;inset:0 auto 0 0;background:var(--l4);border-radius:3px}
+.tick{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink)}
+.grid-ticks{position:absolute;inset:0;display:grid;grid-template-columns:repeat(4,1fr);pointer-events:none}
+.grid-ticks span{border-right:1px solid var(--bg)}
+.nums{font-family:var(--f-mono);font-size:.8rem;text-align:right;font-variant-numeric:tabular-nums;color:var(--muted)}
+.nums b{color:var(--ink);font-weight:500}
+.legend{display:flex;flex-wrap:wrap;gap:16px;font-size:.8rem;color:var(--muted);margin-top:4px}
+.legend i{display:inline-block;width:14px;height:10px;vertical-align:middle;margin-right:6px;border-radius:2px}
+
+/* scale key */
+.scale{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+@media (max-width:700px){.scale{grid-template-columns:minmax(0,1fr)}}
+.scale div{padding:10px 12px;border-radius:6px;font-size:.85rem}
+.scale b{display:block;font-family:var(--f-display);font-stretch:85%;font-size:1rem}
+
+/* pillar tables */
+.pillar{display:grid;gap:10px}
+.pillar-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:8px}
+.pillar-head p{margin:2px 0 0;color:var(--muted);font-size:.9rem;max-width:70ch}
+.pscore{font-family:var(--f-mono);font-size:.85rem;color:var(--muted)}
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:980px}
+th,td{vertical-align:top;text-align:left;border-bottom:1px solid var(--line);padding:0}
+tr:last-child td{border-bottom:none}
+thead th{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:8px 10px;font-weight:500}
+td.cap{padding:12px;width:200px}
+.cap strong{display:block;font-size:.92rem}
+.cap .id{font-family:var(--f-mono);font-size:.72rem;color:var(--muted)}
+.cell{display:block;width:100%;height:100%;min-height:96px;text-align:left;border:0;border-left:1px solid var(--line);border-radius:0;padding:10px;font-size:.8rem;line-height:1.4;background:transparent;color:var(--ink)}
+.cell:hover{background:var(--l1)}
+.cell.on{font-weight:500}
+.cell.on.lv1{background:var(--l1);color:var(--l-ink-light)}
+.cell.on.lv2{background:var(--l2);color:var(--l-ink-light)}
+.cell.on.lv3{background:var(--l3);color:var(--l-ink-light)}
+.cell.on.lv4{background:var(--l4);color:var(--l-ink-dark)}
+.cell.on.lv5{background:var(--l5);color:var(--l-ink-dark)}
+.cell.tg{box-shadow:inset 0 0 0 2px var(--ink)}
+td.side{padding:10px;width:170px;border-left:1px solid var(--line)}
+td.side label{display:block;font-family:var(--f-mono);font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:3px}
+td.side select,td.side textarea{font:inherit;font-size:.82rem;width:100%;border:1px solid var(--line);border-radius:5px;background:var(--bg);color:var(--ink);padding:5px 6px}
+td.side textarea{resize:vertical;min-height:44px;margin-top:6px}
+footer{font-size:.82rem;color:var(--muted);max-width:80ch}
+footer p{margin:0 0 8px}
+.toast{position:fixed;bottom:calc(16px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:6px;font-size:.85rem}
+@media (prefers-reduced-motion:no-preference){.fill{transition:width .25s ease}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Open assessment rubric · 7 pillars · 21 capabilities · 5 levels</div>
+    <h1>AI Readiness Rubric for IT Organizations</h1>
+    <p class="lede">Score each capability by clicking the level that best matches the evidence you found. Set a target level for each one. Pillar and overall scores, gaps and the governance gate update as you go.</p>
+    <div class="controls">
+      <input id="org" type="text" placeholder="Organization or assessment name" aria-label="Organization or assessment name">
+      <button class="primary" id="copy">Copy results</button>
+      <button id="clear">Clear scores</button>
+      <button id="example">Load example</button>
+      <span class="example-flag" id="exflag">Showing example scores</span>
+    </div>
+  </header>
+
+  <section class="summary" aria-label="Summary">
+    <div class="overall">
+      <div class="eyebrow">Overall current maturity</div>
+      <div class="big" id="ovScore">–</div>
+      <div class="lvlname" id="ovLevel">Not scored</div>
+      <div class="note" id="ovTarget"></div>
+      <div class="gate" id="gate" hidden></div>
+    </div>
+    <div class="bars">
+      <div class="eyebrow">By pillar · current vs target · gap</div>
+      <div id="bars"></div>
+      <div class="legend"><span><i style="background:var(--l4)"></i>Current average</span><span><i style="background:var(--ink);width:2px"></i>Target average</span><span>Scale 1–5</span></div>
+    </div>
+  </section>
+
+  <section class="pillar" aria-label="Maturity levels">
+    <h2>Maturity levels</h2>
+    <div class="scale" id="scale"></div>
+  </section>
+
+  <div id="pillars" style="display:grid;gap:36px"></div>
+
+  <footer>
+    <p><strong>Scoring.</strong> Capability score is the selected level (1–5). Pillar score is the average of its three capabilities. Overall score is the average of the seven pillars, each weighted equally. Overall level: below 1.5 = Initial, 1.5–2.4 = Experimenting, 2.5–3.4 = Operational, 3.5–4.4 = Scaled, 4.5+ = Transformational.</p>
+    <p><strong>Governance gate.</strong> An organization cannot be rated Operational or higher overall while Governance or Data averages below 2.5. Pilots reach production only when an inventory, risk tiering and data ownership exist.</p>
+    <p><strong>Source.</strong> Independently written rubric. The seven-pillar structure and five-level progression follow the widely published shape of common enterprise AI maturity models (Gartner, MITRE, Microsoft); no proprietary content is reproduced. Governance descriptors reference NIST AI RMF and ISO/IEC 42001. Scores and notes are saved only in this browser.</p>
+  </footer>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const LEVELS=[
+ {n:"Initial",d:"Ad hoc interest. No strategy, owners or production use."},
+ {n:"Experimenting",d:"Pilots and proofs of concept. Nothing repeatable."},
+ {n:"Operational",d:"AI in production with shared practices and governance."},
+ {n:"Scaled",d:"AI considered in every new initiative; embedded in core platforms."},
+ {n:"Transformational",d:"AI shapes the operating model and business strategy."}
+];
+const P=[
+ {id:"S",name:"Strategy",q:"Is AI tied to business outcomes, prioritized and funded?",caps:[
+  ["Vision & business alignment",["No stated AI direction; interest is ad hoc.","Informal ambitions; pilots chosen by enthusiasm, not business goals.","Documented AI strategy tied to named business outcomes.","AI strategy built into enterprise and IT planning cycles; reviewed yearly.","AI shapes business strategy itself; new offerings start from AI."]],
+  ["Use-case portfolio & prioritization",["No list of use cases.","Use cases collected but unranked; many stalled pilots.","Intake scores use cases on value, feasibility and risk.","Managed portfolio with stage gates; weak performers retired.","Portfolio rebalanced continuously against measured value."]],
+  ["Sponsorship & funding",["No sponsor or budget.","Project-by-project funding from discretionary budgets.","Named executive sponsor and a dedicated AI budget line.","Multi-year funding model; sponsor accountable for outcomes.","AI investment managed as a core capability at board level."]]]},
+ {id:"V",name:"Value",q:"Can the organization show what AI delivers?",caps:[
+  ["Value hypotheses & KPIs",["No defined success measures.","Activity metrics only: licenses, logins, usage.","Each production use case has an outcome hypothesis and baseline.","Outcome KPIs instrumented in the workflow and reported monthly.","AI value reported to the board alongside financial results."]],
+  ["Benefits realization & ROI",["Benefits not tracked.","Anecdotal wins; costs not attributed.","ROI estimated at approval and checked after launch.","Finance validates realized benefits and full run costs.","Value data drives funding, pricing and retirement decisions."]],
+  ["Workflow & role redesign",["AI not considered in process design.","AI tools layered on top of existing workflows.","Selected processes redesigned around AI with human checkpoints.","Process owners redesign end-to-end workflows; roles and SLAs updated.","Work designed AI-first; people and agents share defined responsibilities."]]]},
+ {id:"O",name:"Operating model",q:"Who owns AI, who decides, and who supplies it?",caps:[
+  ["AI center of excellence",["No owning group; individuals experiment.","Informal working group or a single champion.","CoE with charter, staff and defined services.","Hub-and-spoke model with embedded AI leads in business units.","AI capability federated; CoE sets standards and platforms only."]],
+  ["Roles & decision rights",["Unclear who can approve AI use.","Decided case by case, often by security alone.","RACI defined for intake, approval, deployment and retirement.","Product owners accountable for AI systems across their lifecycle.","Decision rights scale with risk tier and autonomy level, including agents."]],
+  ["Partners & vendors",["No vendor strategy; shadow AI tools in use.","Tools bought department by department.","Approved vendor list with AI-specific contract terms.","Strategic partners managed for capability, cost and lock-in risk.","Ecosystem actively shaped; co-development with partners."]]]},
+ {id:"C",name:"People & culture",q:"Do people have the skills and willingness to work with AI?",caps:[
+  ["AI literacy",["Little shared understanding of AI.","Optional training; pockets of skill.","Role-based literacy program with completion tracking.","AI skills written into job profiles and goals.","Continuous learning; staff build and improve AI tools themselves."]],
+  ["Change management & adoption",["No change plan; fear and resistance unaddressed.","Launch communications only.","Structured change plan per rollout with a champions network.","Adoption measured by changed behavior, not access; feedback loops run.","Experimentation is the norm; teams add and retire AI uses on their own."]],
+  ["Specialist talent",["No AI specialists.","One or two specialists, often contractors.","Core team covering data science, AI engineering and product.","Career paths for AI roles; IT staff reskilled into them.","Workforce plan anticipates new roles such as agent supervisors."]]]},
+ {id:"G",name:"Governance",q:"Is AI risk known, owned and controlled?",caps:[
+  ["Policy & risk framework",["No AI policy.","Acceptable-use policy only.","Risk framework adopted (e.g. NIST AI RMF) with risk tiering at intake.","Controls mapped to a management standard such as ISO/IEC 42001; audited.","Controls automated in delivery pipelines; policy tracks new regulation."]],
+  ["AI inventory & lifecycle oversight",["Nobody knows what AI is in use.","Partial list; AI embedded in vendor products not tracked.","Single inventory of AI systems with owner and risk tier.","Reviews at deploy, change and retirement; AI incidents logged.","Live inventory including agents and their permissions."]],
+  ["Security, privacy & compliance",["AI not covered by security reviews.","Reviews happen inconsistently.","AI-specific threat review (prompt injection, data leakage) before production.","Red-teaming and privacy assessments for high-risk systems.","Continuous testing and monitoring; findings feed design standards."]]]},
+ {id:"E",name:"Engineering",q:"Can IT build, run and evaluate AI reliably?",caps:[
+  ["Platform & deployment",["Models used through personal or consumer tools.","Each pilot builds its own stack.","Shared platform for model access, deployment and versioning.","Self-service platform with CI/CD, model gateway and cost controls.","Platform runs autonomous agents with orchestration and guardrails."]],
+  ["Evaluation & monitoring",["No testing beyond demos.","Manual spot checks.","Defined evaluation sets; production monitoring for drift and errors.","Automated evals in release pipelines; quality SLOs.","Systems improve from monitored feedback under human review."]],
+  ["Integration & architecture",["AI isolated from enterprise systems.","Point-to-point integrations per pilot.","Reference architecture and reusable APIs for AI services.","AI built into core platforms (ERP, ITSM, CRM) through standard patterns.","Architecture treats AI and agents as first-class components."]]]},
+ {id:"D",name:"Data",q:"Is the data AI depends on fit, owned and protected?",caps:[
+  ["Data quality & AI readiness",["Data quality unknown.","Quality fixed by hand per project.","Quality rules and metrics for data used by AI.","Curated AI-ready data products with service levels.","Quality monitored continuously, with AI assisting remediation."]],
+  ["Ownership & stewardship",["No data owners.","Owners named informally.","Named owners and stewards for key domains.","Stewards accountable for the AI fitness of their data.","Ownership built into business roles and incentives."]],
+  ["Access, lineage & classification",["Sensitive data unclassified.","Classification exists but not enforced for AI inputs.","Sensitive data classified; AI access controlled by policy.","Lineage tracked from source to model output.","Automated fine-grained access and provenance for every AI system."]]]}
+];
+const EXAMPLE={cur:{S1:3,S2:2,S3:3,V1:2,V2:1,V3:2,O1:2,O2:2,O3:3,C1:2,C2:2,C3:2,G1:2,G2:1,G3:3,E1:2,E2:2,E3:3,D1:2,D2:2,D3:3},tgt:3,bump:["S2","G1","G2","E1","V1"]};
+const KEY="ai-readiness-rubric-v1";
+let state=null;
+function exampleState(){const s={org:"Example IT organization",cur:{...EXAMPLE.cur},tgt:{},notes:{},example:true};P.forEach(p=>p.caps.forEach((c,i)=>{const k=p.id+(i+1);s.tgt[k]=EXAMPLE.bump.includes(k)?4:3;}));return s}
+function emptyState(){return {org:"",cur:{},tgt:{},notes:{},example:false}}
+function load(){try{const r=localStorage.getItem(KEY);if(r)return JSON.parse(r)}catch(e){}return exampleState()}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
+const lvClass=n=>"lv"+n;
+const levelFor=s=>s<1.5?1:s<2.5?2:s<3.5?3:s<4.5?4:5;
+const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
+const f1=n=>n==null?"–":n.toFixed(1);
+function pillarScores(p){const cur=[],tgt=[];p.caps.forEach((c,i)=>{const k=p.id+(i+1);if(state.cur[k])cur.push(state.cur[k]);if(state.tgt[k])tgt.push(state.tgt[k])});return {cur:avg(cur),tgt:avg(tgt),n:cur.length}}
+
+function buildScale(){const el=document.getElementById("scale");el.innerHTML=LEVELS.map((l,i)=>`<div class="cell on ${lvClass(i+1)}" style="min-height:0"><b>${i+1} · ${l.n}</b>${l.d}</div>`).join("")}
+function buildPillars(){
+ const root=document.getElementById("pillars");
+ root.innerHTML=P.map(p=>`<section class="pillar" id="p-${p.id}">
+  <div class="pillar-head"><div><h2>${p.name}</h2><p>${p.q}</p></div><div class="pscore" id="ps-${p.id}"></div></div>
+  <div class="tbl-wrap"><table><thead><tr><th>Capability</th>${LEVELS.map((l,i)=>`<th>${i+1} ${l.n}</th>`).join("")}<th>Target & evidence</th></tr></thead><tbody>
+  ${p.caps.map((c,i)=>{const k=p.id+(i+1);return `<tr><td class="cap"><span class="id">${k}</span><strong>${c[0]}</strong></td>
+   ${c[1].map((d,j)=>`<td><button class="cell" data-k="${k}" data-l="${j+1}" aria-label="${c[0]}: level ${j+1}">${d}</button></td>`).join("")}
+   <td class="side"><label for="t-${k}">Target</label><select id="t-${k}" data-k="${k}"><option value="">–</option>${LEVELS.map((l,j)=>`<option value="${j+1}">${j+1} ${l.n}</option>`).join("")}</select>
+   <textarea id="n-${k}" data-k="${k}" placeholder="Evidence / interview notes" aria-label="Evidence for ${c[0]}"></textarea></td></tr>`}).join("")}
+  </tbody></table></div></section>`).join("");
+ root.addEventListener("click",e=>{const b=e.target.closest(".cell[data-k]");if(!b)return;const k=b.dataset.k,l=+b.dataset.l;state.cur[k]=state.cur[k]===l?undefined:l;if(!state.cur[k])delete state.cur[k];touch()});
+ root.addEventListener("change",e=>{if(e.target.matches("select")){const k=e.target.dataset.k;if(e.target.value)state.tgt[k]=+e.target.value;else delete state.tgt[k];touch()}});
+ root.addEventListener("input",e=>{if(e.target.matches("textarea")){state.notes[e.target.dataset.k]=e.target.value;state.example=false;save();document.getElementById("exflag").hidden=true}});
+}
+function touch(){state.example=false;save();render()}
+function render(){
+ document.getElementById("org").value=state.org||"";
+ document.getElementById("exflag").hidden=!state.example;
+ document.querySelectorAll(".cell[data-k]").forEach(b=>{const k=b.dataset.k,l=+b.dataset.l;b.className="cell "+(state.cur[k]===l?"on "+lvClass(l):"")+(state.tgt[k]===l?" tg":"");b.setAttribute("aria-pressed",state.cur[k]===l)});
+ document.querySelectorAll("select[data-k]").forEach(s=>s.value=state.tgt[s.dataset.k]||"");
+ document.querySelectorAll("textarea[data-k]").forEach(t=>t.value=state.notes[t.dataset.k]||"");
+ const ps=P.map(p=>({p,...pillarScores(p)}));
+ document.getElementById("bars").innerHTML=ps.map(({p,cur,tgt})=>{const w=cur?((cur-1)/4*100):0,t=tgt?((tgt-1)/4*100):null,gap=(cur!=null&&tgt!=null)?(tgt-cur):null;
+  return `<div class="bar-row"><div class="name">${p.name}</div><div class="track"><div class="grid-ticks"><span></span><span></span><span></span><span></span></div><div class="fill" style="width:${w}%"></div>${t!=null?`<div class="tick" style="left:calc(${t}% - 1px)"></div>`:""}</div><div class="nums"><b>${f1(cur)}</b> → ${f1(tgt)}${gap!=null&&gap>0?` <span style="color:var(--warn)">+${gap.toFixed(1)}</span>`:""}</div></div>`}).join("");
+ ps.forEach(({p,cur,tgt,n})=>document.getElementById("ps-"+p.id).textContent=`${n}/3 scored · current ${f1(cur)} · target ${f1(tgt)}`);
+ const scored=ps.filter(x=>x.cur!=null);const ov=scored.length?avg(scored.map(x=>x.cur)):null;
+ const tg=ps.filter(x=>x.tgt!=null);const ot=tg.length?avg(tg.map(x=>x.tgt)):null;
+ document.getElementById("ovScore").innerHTML=ov==null?"–":`${ov.toFixed(1)}<small> / 5</small>`;
+ let lvl=ov==null?null:levelFor(ov);
+ const g=ps.find(x=>x.p.id==="G").cur,d=ps.find(x=>x.p.id==="D").cur;
+ const gated=lvl&&lvl>=3&&((g!=null&&g<2.5)||(d!=null&&d<2.5));
+ if(gated)lvl=2;
+ document.getElementById("ovLevel").textContent=lvl?`Level ${lvl} · ${LEVELS[lvl-1].n}`:"Not scored";
+ document.getElementById("ovTarget").textContent=(ot!=null?`Target ${ot.toFixed(1)} (${LEVELS[levelFor(ot)-1].n})`:"")+(scored.length&&scored.length<7?` · ${scored.length}/7 pillars scored`:"");
+ const gate=document.getElementById("gate");
+ const weak=[g!=null&&g<2.5?"Governance":null,d!=null&&d<2.5?"Data":null].filter(Boolean);
+ gate.hidden=!weak.length;
+ gate.textContent=weak.length?(gated?`Capped at Experimenting: ${weak.join(" and ")} below 2.5. Production AI needs an inventory, risk tiering and data owners first.`:`Gate risk: ${weak.join(" and ")} below 2.5. This will block moving past Experimenting.`):"";
+}
+document.getElementById("org").addEventListener("input",e=>{state.org=e.target.value;save()});
+document.getElementById("clear").addEventListener("click",()=>{state=emptyState();save();render();toast("Scores cleared")});
+document.getElementById("example").addEventListener("click",()=>{state=exampleState();save();render();toast("Example loaded")});
+document.getElementById("copy").addEventListener("click",()=>{
+ const rows=[["Organization",state.org||""],[],["Pillar","Capability","ID","Current","Target","Gap","Evidence"]];
+ P.forEach(p=>p.caps.forEach((c,i)=>{const k=p.id+(i+1),cu=state.cur[k]||"",t=state.tgt[k]||"";rows.push([p.name,c[0],k,cu,t,(cu&&t)?t-cu:"",(state.notes[k]||"").replace(/\s+/g," ")])}));
+ rows.push([]);rows.push(["Pillar","Current avg","Target avg"]);P.forEach(p=>{const s=pillarScores(p);rows.push([p.name,f1(s.cur),f1(s.tgt)])});
+ rows.push(["Overall",document.getElementById("ovScore").textContent.replace(" / 5",""),document.getElementById("ovLevel").textContent]);
+ const txt=rows.map(r=>r.join("\t")).join("\n");
+ const done=()=>toast("Copied. Paste into Excel or Sheets");
+ try{navigator.clipboard.writeText(txt).then(done).catch(()=>fallback(txt))}catch(e){fallback(txt)}
+});
+function fallback(txt){const ta=document.createElement("textarea");ta.value=txt;ta.style.position="fixed";ta.style.opacity="0";document.body.appendChild(ta);ta.select();let ok=false;try{ok=document.execCommand("copy")}catch(e){}ta.remove();toast(ok?"Copied. Paste into Excel or Sheets":"Copy was blocked by this browser")}
+let tt;function toast(m){const t=document.getElementById("toast");t.textContent=m;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>t.hidden=true,2200)}
+state=load();buildScale();buildPillars();render();
+</script>
+
+</body></html>

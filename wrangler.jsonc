@@ -5,6 +5,7 @@
   //   /subscriptions/      Subscription Manager (static, public/subscriptions/)
   //   /jsm-receipt-maker/  JSM Receipt Maker    (static, public/jsm-receipt-maker/)
   //   /coffee-chart-builder/ Coffee Chart Builder (static, public/coffee-chart-builder/)
+  //   /ai-readiness-rubric/  AI Readiness Rubric (static, public/ai-readiness-rubric/)
   //   /rrr-coffee/         RRR Coffee           (Worker → container, behind Cloudflare Access)
   "name": "emmersontools",
   "main": "worker/index.js",

@@ -9,6 +9,7 @@ The whole of [emmersontools.com](https://emmersontools.com) in one repository: t
 | JSM Receipt Maker | https://emmersontools.com/jsm-receipt-maker/ | `public/jsm-receipt-maker/` (+ local launcher in `apps/jsm-receipt-maker/`) |
 | RRR Coffee | https://emmersontools.com/rrr-coffee/ | `apps/rrr-coffee/` (Python app in a container) |
 | Coffee Chart Builder | https://emmersontools.com/coffee-chart-builder/ | `public/coffee-chart-builder/` |
+| AI Readiness Rubric (Vantage and Vector) | https://emmersontools.com/ai-readiness-rubric/ | `public/ai-readiness-rubric/` |
 | Michael's Day (personal dashboard) | https://claude.ai/artifact/24BwLeGfc1jKAMGZ3NxtXp | Lives on claude.ai, linked from the homepage. Its Outlook and Shopify panels load through Claude's connectors, so it only works when opened in Claude. |
 
 ## Layout
@@ -19,6 +20,7 @@ public/                     everything served as-is (only this folder is public)
   subscriptions/              Subscription Manager (single static page, data in the browser)
   jsm-receipt-maker/          JSM Receipt Maker (static page + logo + jsPDF, data in the browser)
   coffee-chart-builder/       Coffee Chart Builder (single static page, cupping radar / flavor wheel PNG export)
+  ai-readiness-rubric/        Vantage and Vector AI Readiness Rubric (single static page, scores saved in the browser)
 apps/
   rrr-coffee/                 RRR Coffee Python app, its Dockerfile, tests and local launchers
   jsm-receipt-maker/          local launcher (server.py, Start Receipt Maker.command) and README
@@ -30,7 +32,7 @@ wrangler.jsonc              Worker, static assets, container, Durable Object and
 
 How requests are handled:
 
-- `/`, `/subscriptions/…`, `/jsm-receipt-maker/…`, `/coffee-chart-builder/…` are plain files from `public/`. They never run any code. `/subscriptions`, `/jsm-receipt-maker` and `/coffee-chart-builder` without the slash redirect to the version with it.
+- `/`, `/subscriptions/…`, `/jsm-receipt-maker/…`, `/coffee-chart-builder/…`, `/ai-readiness-rubric/…` are plain files from `public/`. They never run any code. `/subscriptions`, `/jsm-receipt-maker`, `/coffee-chart-builder` and `/ai-readiness-rubric` without the slash redirect to the version with it.
 - `/rrr-coffee/…` goes to the Worker, which checks the Cloudflare Access login, removes the `/rrr-coffee` prefix and passes the request to the RRR Coffee container. The app's page uses relative links, so everything it loads stays under `/rrr-coffee/`.
 
 ## Adding a tool
