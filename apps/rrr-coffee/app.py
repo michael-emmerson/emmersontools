@@ -322,7 +322,8 @@ class Handler(BaseHTTPRequestHandler):
         with open(path, "rb") as fh:
             data = fh.read()
         name = os.path.basename(path).replace('"', "")
-        self._send(200, data, XLSX_TYPE, {"Content-Disposition": f'attachment; filename="{name}"'})
+        self._send(200, data, XLSX_TYPE, {"Content-Disposition": f'attachment; filename="{name}"',
+                                                 "Cache-Control": "no-store"})
 
     # Shopify -------------------------------------------------------------------------------------------
     def _shopify_review(self):
