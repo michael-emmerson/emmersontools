@@ -12,8 +12,10 @@ import base64
 import binascii
 import json
 import os
+import html
 import sys
 import threading
+import time
 import webbrowser
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -33,6 +35,10 @@ XLSX_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
 # Cloud mode: None when running on someone's own computer.
 CLOUD = None  # {"sheet": path, "mirror": cloud.Mirror}
+# Cloud mode: why the files couldn't be restored from R2 yet. While set, every request gets a 503 that says so,
+# and a background thread keeps retrying. The app never starts on an empty sheet that could hide the real one.
+STORAGE_PENDING = None
+RESTORE_RETRY_SECONDS = 5
 
 
 class Settings:
@@ -140,11 +146,30 @@ class Handler(BaseHTTPRequestHandler):
     def _inventory(self, data=None):
         return Inventory((data or self.settings.load())["spreadsheet"])
 
+    def _storage_pending(self, path):
+        """In cloud mode, answers with a 503 while the files haven't been restored from R2 yet."""
+        reason = STORAGE_PENDING
+        if reason is None:
+            return False
+        text = ("RRR Coffee is waiting for its files from Cloudflare storage and will keep trying. "
+                f"Reload in a few seconds. ({reason})")
+        if path.startswith("/api/"):
+            self._error(503, text)
+        else:
+            page = (f'<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width">'
+                    f'<meta http-equiv="refresh" content="{RESTORE_RETRY_SECONDS * 2}"><title>RRR Coffee</title>'
+                    f'<body style="font-family:system-ui;max-width:36em;margin:4em auto;padding:0 16px">'
+                    f'<h1 style="font-size:1.3em">Starting up</h1><p>{html.escape(text)}</p></body>')
+            self._send(503, page.encode(), "text/html; charset=utf-8")
+        return True
+
     # Routing -------------------------------------------------------------------------------------------
     def do_GET(self):
+        path = urlparse(self.path).path
+        if self._storage_pending(path):  # cloud mode only, where any host is fine
+            return
         if not self._host_ok():
             return self._error(HTTPStatus.FORBIDDEN, "Open the app at http://localhost.")
-        path = urlparse(self.path).path
         try:
             if path == "/api/state":
                 data = self.settings.load()
@@ -165,6 +190,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._error(502, str(exc))
 
     def do_POST(self):
+        if self._storage_pending(urlparse(self.path).path):  # cloud mode only; nothing is changed
+            return
         # Requests must come from this app's own page: right host, JSON body, and our custom header
         # (a page on another site can't send that header to localhost without permission we never grant).
         if not self._host_ok() or self.headers.get("X-RRR-App") != "1" \
@@ -367,6 +394,34 @@ def enable_cloud(storage_url, data_dir, settings_path=None):
     return settings_path
 
 
+def start_cloud(storage_url, data_dir, settings_path=None):
+    """Like enable_cloud, but if R2 can't be reached yet the app still starts (so the container stays up)
+    and answers every request with a 503 until a background retry restores the files."""
+    global STORAGE_PENDING
+    settings_path = settings_path or os.path.join(data_dir, "settings.json")
+    try:
+        return enable_cloud(storage_url, data_dir, settings_path)
+    except cloud.StorageError as exc:
+        STORAGE_PENDING = str(exc)
+        print(f"Couldn't restore from Cloudflare storage, will keep trying: {exc}", flush=True)
+
+    def retry():
+        global STORAGE_PENDING
+        while STORAGE_PENDING is not None:
+            time.sleep(RESTORE_RETRY_SECONDS)
+            try:
+                enable_cloud(storage_url, data_dir, settings_path)
+            except cloud.StorageError as exc:
+                STORAGE_PENDING = str(exc)
+                print(f"Still can't restore from Cloudflare storage: {exc}", flush=True)
+                continue
+            STORAGE_PENDING = None
+            return
+
+    threading.Thread(target=retry, daemon=True).start()
+    return settings_path
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--port", type=int, default=int(os.environ.get("RRR_PORT", 8765)))
@@ -377,13 +432,13 @@ def main():
 
     settings_path = args.settings or os.path.join(HERE, "settings.json")
     if os.environ.get("RRR_STORAGE_URL"):
-        settings_path = enable_cloud(os.environ["RRR_STORAGE_URL"], os.environ.get("RRR_DATA_DIR", "/data"),
-                                     args.settings)
+        settings_path = start_cloud(os.environ["RRR_STORAGE_URL"], os.environ.get("RRR_DATA_DIR", "/data"),
+                                    args.settings)
     Handler.settings = Settings(settings_path)
     server = ThreadingHTTPServer((args.host, args.port), Handler)
     url = f"http://localhost:{args.port}"
-    sheet = Handler.settings.load()["spreadsheet"]
-    print(f"RRR Coffee Inventory is running at {url}\nSpreadsheet: {sheet}\nPress Ctrl+C to stop.")
+    sheet = "(waiting for Cloudflare storage)" if STORAGE_PENDING else Handler.settings.load()["spreadsheet"]
+    print(f"RRR Coffee Inventory is running at {url}\nSpreadsheet: {sheet}\nPress Ctrl+C to stop.", flush=True)
     if not args.no_browser:
         threading.Timer(0.8, lambda: webbrowser.open(url)).start()
     try:
