@@ -13,6 +13,7 @@ import shutil
 import sys
 import tempfile
 import threading
+import time
 import unittest
 import urllib.error
 import urllib.parse
@@ -574,6 +575,36 @@ class CloudTests(unittest.TestCase):
         self.r2.down = True
         with self.assertRaises(cloud.StorageError):
             app.enable_cloud(self.r2.url, self.dirs[-1])
+
+    def test_storage_outage_at_start_waits_instead_of_exiting(self):
+        self.call("/api/spreadsheet/upload", {"filename": "x.xlsx", "data": base64.b64encode(xlsx_bytes()).decode()})
+        app.CLOUD = None
+        self.r2.down = True
+        data_dir = tempfile.mkdtemp()
+        self.dirs.append(data_dir)
+        original = app.RESTORE_RETRY_SECONDS
+        app.RESTORE_RETRY_SECONDS = 0.2
+        try:
+            app.Handler.settings = app.Settings(app.start_cloud(self.r2.url, data_dir))
+            self.assertIsNotNone(app.STORAGE_PENDING)
+            status, res = self.call("/api/state")
+            self.assertEqual(status, 503)  # never an empty sheet that could hide the real one
+            self.assertIn("Cloudflare storage", res["error"])
+            self.assertEqual(self.call("/api/usage/add", {"row": 2, "expect": "x", "lbs": 1})[0], 503)
+            with self.assertRaises(urllib.error.HTTPError) as page:
+                urllib.request.urlopen(self.base + "/")
+            self.assertEqual(page.exception.code, 503)
+            self.r2.down = False
+            for _ in range(50):
+                if app.STORAGE_PENDING is None:
+                    break
+                time.sleep(0.1)
+            self.assertIsNone(app.STORAGE_PENDING)
+            _, state = self.call("/api/state")
+            self.assertEqual(len(state["beans"]), 12)
+        finally:
+            app.RESTORE_RETRY_SECONDS = original
+            app.STORAGE_PENDING = None
 
 
 if __name__ == "__main__":
