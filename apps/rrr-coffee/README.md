@@ -30,7 +30,7 @@ The first start takes a few seconds while it installs its one dependency (openpy
 
 The app only listens on your own computer (localhost), so nobody else on your network can reach it.
 
-Online, the same app runs at **https://emmersontools.com/rrr-coffee/** behind a Cloudflare Access email login, with the spreadsheet kept in Cloudflare R2. See the **RRR Coffee online** section of the [main README](../../README.md).
+Online, the same app runs at **https://emmersontools.com/rrr-coffee/** behind the Cloudflare Access email login that protects all of emmersontools.com, with the spreadsheet kept in Cloudflare R2. See the **RRR Coffee online** section of the [main README](../../README.md).
 
 ## How it changes the spreadsheet
 

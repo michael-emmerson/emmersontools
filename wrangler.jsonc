@@ -6,7 +6,7 @@
   //   /jsm-receipt-maker/  JSM Receipt Maker    (static, public/jsm-receipt-maker/)
   //   /coffee-chart-builder/ Coffee Chart Builder (static, public/coffee-chart-builder/)
   //   /ai-readiness-rubric/  AI Readiness Rubric (static, public/ai-readiness-rubric/)
-  //   /rrr-coffee/         RRR Coffee           (Worker → container, behind Cloudflare Access)
+  //   /rrr-coffee/         RRR Coffee           (Worker → container)
   "name": "emmersontools",
   "main": "worker/index.js",
   "compatibility_date": "2026-11-01",
@@ -36,7 +36,5 @@
   // Same bucket the old rrr-coffee-webapp Worker used, so nothing needs to be moved.
   "r2_buckets": [{ "binding": "FILES", "bucket_name": "rrr-coffee-inventory" }]
   // Secrets (set in the dashboard or with `wrangler secret put`, never in this file):
-  //   ACCESS_TEAM_DOMAIN  e.g. yourteam.cloudflareaccess.com
-  //   ACCESS_AUD          Audience (AUD) tag of the Access application protecting emmersontools.com/rrr-coffee
   //   SHOPIFY_STORE, SHOPIFY_CLIENT_ID, SHOPIFY_CLIENT_SECRET  (optional; can be entered in the app instead)
 }

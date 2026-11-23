@@ -5,16 +5,14 @@
 // (see "run_worker_first" in wrangler.jsonc).
 //
 // RRR Coffee:
-// - Every request must carry a valid Cloudflare Access login (checked here as well as by Access itself),
-//   because the app can change the Shopify store. Until ACCESS_TEAM_DOMAIN and ACCESS_AUD are set, the
-//   app refuses everyone.
+// - Login is handled by Cloudflare Access in front of emmersontools.com (set up in the Cloudflare
+//   dashboard, not here). This Worker does no login check of its own.
 // - The /rrr-coffee prefix is removed before the request goes to the container, so the Python app runs
 //   exactly as it does on a computer. Its page uses relative links, so they stay under /rrr-coffee/.
 // - Requests go to one container instance, so there is only ever one copy of the spreadsheet being edited.
 // - The container keeps its files in the R2 bucket (binding FILES) by sending HTTP requests to
 //   http://r2.internal, which are answered here (see apps/rrr-coffee/rrr/cloud.py).
 import { Container, getContainer } from "@cloudflare/containers";
-import { checkAccess } from "./access.js";
 
 export { ContainerProxy } from "@cloudflare/containers";
 
@@ -56,13 +54,6 @@ export class InventoryContainer extends Container {
   }
 }
 
-function page(status, title, text) {
-  const html = `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width">
-<title>${title}</title><body style="font-family:system-ui;max-width:36em;margin:4em auto;padding:0 16px">
-<h1 style="font-size:1.3em">${title}</h1><p>${text}</p></body>`;
-  return new Response(html, { status, headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" } });
-}
-
 // Where a request goes: "redirect" (add the trailing slash), "rrr" (with the path the container should
 // see), or "assets".
 function route(url) {
@@ -73,14 +64,6 @@ function route(url) {
 }
 
 async function rrrCoffee(request, env, innerPath) {
-  const access = await checkAccess(request, env);
-  if (!access.ok) {
-    if (access.why === "not-configured") {
-      return page(503, "Login not set up yet",
-        "RRR Coffee stays locked until Cloudflare Access is turned on for it. See README.md in the repository.");
-    }
-    return page(403, "Please sign in", "Open this page again to sign in with your Cloudflare Access login.");
-  }
   const url = new URL(request.url);
   url.pathname = innerPath;
   // One instance only: the spreadsheet must have a single editor.
