@@ -77,6 +77,7 @@ async function load() {
   $("#welcome").hidden = !welcome;
   $("main").hidden = welcome;
   $(".tabs").hidden = welcome;
+  $("#save-sheet").hidden = welcome || !!state.missing;
   if (welcome) {
     banner.hidden = true;
     $("#welcome-where").textContent = state.app_settings.cloud ? "It will be stored in the app's Cloudflare storage, with a backup kept of every change."
@@ -475,6 +476,55 @@ async function doPush() {
 }
 
 // ---------- tabs and wiring ----------
+// ---------- save the spreadsheet to this computer ----------
+const SHEET_FILE = "RRR Coffee Inventory Master.xlsx";
+
+async function saveSheetToComputer() {
+  const btn = $("#save-sheet");
+  btn.disabled = true;
+  try {
+    const res = await fetch("api/spreadsheet/download", { cache: "no-store" });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || `Couldn't get the spreadsheet (${res.status})`);
+    }
+    const blob = await res.blob();
+    if (window.showSaveFilePicker) {
+      // Chrome and Edge: save straight over the copy the label task reads. The picker opens in the folder
+      // used last time (remembered by the id), so after the first save it's just Save, then Replace.
+      let handle;
+      try {
+        handle = await window.showSaveFilePicker({
+          id: "rrr-inventory-sheet",
+          suggestedName: SHEET_FILE,
+          startIn: "documents",
+          types: [{ description: "Excel spreadsheet", accept: { "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"] } }],
+        });
+      } catch (err) {
+        if (err.name === "AbortError") return; // cancelled
+        throw err;
+      }
+      const out = await handle.createWritable();
+      await out.write(blob);
+      await out.close();
+      toast(`Saved ${handle.name}.`);
+    } else {
+      // Safari and Firefox: an ordinary download, into the browser's download folder.
+      const url = URL.createObjectURL(blob);
+      const a = el("a", { href: url, download: SHEET_FILE });
+      document.body.append(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
+      toast(`Downloaded ${SHEET_FILE}.`);
+    }
+  } catch (err) {
+    toast(err.message, true);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
 function switchTab(name) {
   $$(".tabs button").forEach((b) => b.classList.toggle("active", b.dataset.tab === name));
   $$(".tab").forEach((t) => (t.hidden = t.id !== `tab-${name}`));
@@ -486,6 +536,7 @@ $$(".tabs button").forEach((b) => b.addEventListener("click", () => switchTab(b.
 $("#bean-search").addEventListener("input", renderBeans);
 $("#hide-empty").addEventListener("change", renderBeans);
 $("#add-bean").addEventListener("click", () => openBean(null));
+$("#save-sheet").addEventListener("click", saveSheetToComputer);
 $("#bean-form").addEventListener("submit", saveBean);
 $("#bean-form").addEventListener("input", updateCalc);
 $("#bean-delete").addEventListener("click", deleteBean);

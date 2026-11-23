@@ -37,7 +37,8 @@ code { background: var(--chip); padding: 0 4px; border-radius: 4px; }
 .brand { display: flex; align-items: center; gap: 10px; }
 .logo { font-size: 26px; }
 .sheet { margin: 0; color: var(--muted); font-size: 12px; max-width: 60vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.tabs { display: flex; gap: 4px; margin-left: auto; }
+.tabs { display: flex; gap: 4px; }
+.save-sheet { margin-left: auto; white-space: nowrap; }
 .tabs button { background: none; border: 0; padding: 8px 14px; border-radius: 8px; color: var(--muted); font-weight: 600; cursor: pointer; }
 .tabs button.active { background: var(--chip); color: var(--ink); }
 

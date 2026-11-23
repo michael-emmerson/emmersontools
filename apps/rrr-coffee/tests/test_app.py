@@ -394,6 +394,7 @@ class ServerTests(Base):
         req = urllib.request.Request(self.base + "/api/spreadsheet/download")
         with urllib.request.urlopen(req) as resp:
             self.assertIn("attachment", resp.headers["Content-Disposition"])
+            self.assertEqual(resp.headers["Cache-Control"], "no-store")
             self.assertEqual(resp.read(), open(self.path, "rb").read())
 
     def test_usage_via_http_and_secrets_hidden(self):

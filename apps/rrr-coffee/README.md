@@ -45,6 +45,13 @@ Online, the same app runs at **https://emmersontools.com/rrr-coffee/** behind th
 - Excel and Numbers recalculate every formula when they open the file. The Finder/Explorer quick preview may show the formula cells blank until the file has been opened and saved once in Excel or Numbers.
 - The Varietal is each bean's name in the app and in the Usage Log, so two beans can't share the same Varietal.
 
+## Saving the spreadsheet to your Mac
+
+The **⬇ Save spreadsheet to Mac** button at the top of every tab saves the current spreadsheet, with every change made in the app, as **RRR Coffee Inventory Master.xlsx**, the name the label generation task looks for.
+
+- **Chrome or Edge**: a Save dialog opens. The first time, go to the folder the label task reads from and click **Save** (then **Replace** if the file is already there). The browser remembers that folder, so after that it's just Save, Replace.
+- **Safari or Firefox**: it's an ordinary download into your Downloads folder. If an older copy is already there, the browser saves the new one as `RRR Coffee Inventory Master (1).xlsx` or similar, so move the old one out first, or set the browser to ask where to save downloads.
+
 ## Connecting Shopify
 
 Shopify no longer lets stores create the old "custom apps" with a copy-and-paste access token, so the app connects through a small private app you create in Shopify's **Dev Dashboard**. It takes about five minutes and you only do it once.
