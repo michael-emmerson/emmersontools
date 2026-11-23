@@ -1,6 +1,6 @@
 // The Worker for emmersontools.com.
 //
-// Static tools (the homepage, /subscriptions/, /jsm-receipt-maker/) are served straight from public/ by
+// Static tools (the homepage, /subscriptions/, /jsm-receipt-maker/, /coffee-chart-builder/) are served straight from public/ by
 // Cloudflare's asset handling and never reach this code. Only /rrr-coffee and /rrr-coffee/* run here
 // (see "run_worker_first" in wrangler.jsonc).
 //

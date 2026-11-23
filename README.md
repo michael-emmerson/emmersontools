@@ -8,6 +8,7 @@ The whole of [emmersontools.com](https://emmersontools.com) in one repository: t
 | Subscription Manager | https://emmersontools.com/subscriptions/ | `public/subscriptions/` |
 | JSM Receipt Maker | https://emmersontools.com/jsm-receipt-maker/ | `public/jsm-receipt-maker/` (+ local launcher in `apps/jsm-receipt-maker/`) |
 | RRR Coffee | https://emmersontools.com/rrr-coffee/ | `apps/rrr-coffee/` (Python app in a container) |
+| Coffee Chart Builder | https://emmersontools.com/coffee-chart-builder/ | `public/coffee-chart-builder/` |
 
 ## Layout
 
@@ -16,6 +17,7 @@ public/                     everything served as-is (only this folder is public)
   index.html, favicon.svg     homepage
   subscriptions/              Subscription Manager (single static page, data in the browser)
   jsm-receipt-maker/          JSM Receipt Maker (static page + logo + jsPDF, data in the browser)
+  coffee-chart-builder/       Coffee Chart Builder (single static page, cupping radar / flavor wheel PNG export)
 apps/
   rrr-coffee/                 RRR Coffee Python app, its Dockerfile, tests and local launchers
   jsm-receipt-maker/          local launcher (server.py, Start Receipt Maker.command) and README
@@ -27,7 +29,7 @@ wrangler.jsonc              Worker, static assets, container, Durable Object and
 
 How requests are handled:
 
-- `/`, `/subscriptions/…`, `/jsm-receipt-maker/…` are plain files from `public/`. They never run any code. `/subscriptions` and `/jsm-receipt-maker` without the slash redirect to the version with it.
+- `/`, `/subscriptions/…`, `/jsm-receipt-maker/…`, `/coffee-chart-builder/…` are plain files from `public/`. They never run any code. `/subscriptions`, `/jsm-receipt-maker` and `/coffee-chart-builder` without the slash redirect to the version with it.
 - `/rrr-coffee/…` goes to the Worker, which checks the Cloudflare Access login, removes the `/rrr-coffee` prefix and passes the request to the RRR Coffee container. The app's page uses relative links, so everything it loads stays under `/rrr-coffee/`.
 
 ## Adding a tool
@@ -80,6 +82,10 @@ Not built yet (needs a backend): bank linking, email receipt scanning, push noti
 ## JSM Receipt Maker
 
 PDF sales and purchase receipts for Just Shoot Me, LLC, with a receipt log kept in the browser. See [apps/jsm-receipt-maker/README.md](apps/jsm-receipt-maker/README.md).
+
+## Coffee Chart Builder
+
+A single self-contained page (`public/coffee-chart-builder/index.html`) with no build step and no server. Pick **Cupping Score** (radar chart of 10 categories scored 0–10, plus Cupper's Correction up to 10 and a final score) or **Flavor Wheel** (12 flavor wedges scored 0–5 in half-point steps), enter the coffee name, and download a 1080×1080 PNG. Nothing is saved; the font (Satoshi) loads from Fontshare.
 
 ## RRR Coffee online
 
