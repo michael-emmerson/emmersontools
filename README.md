@@ -9,6 +9,7 @@ The whole of [emmersontools.com](https://emmersontools.com) in one repository: t
 | JSM Receipt Maker | https://emmersontools.com/jsm-receipt-maker/ | `public/jsm-receipt-maker/` (+ local launcher in `apps/jsm-receipt-maker/`) |
 | RRR Coffee | https://emmersontools.com/rrr-coffee/ | `apps/rrr-coffee/` (Python app in a container) |
 | Coffee Chart Builder | https://emmersontools.com/coffee-chart-builder/ | `public/coffee-chart-builder/` |
+| Michael's Day (personal dashboard) | https://claude.ai/artifact/24BwLeGfc1jKAMGZ3NxtXp | Lives on claude.ai, linked from the homepage. Its Outlook and Shopify panels load through Claude's connectors, so it only works when opened in Claude. |
 
 ## Layout
 
