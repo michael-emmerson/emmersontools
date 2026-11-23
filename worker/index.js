@@ -39,10 +39,6 @@ export class InventoryContainer extends Container {
   sleepAfter = "15m"; // files are saved to R2 on every change, so stopping loses nothing
   enableInternet = true; // Shopify
 
-  static outboundByHost = {
-    [STORAGE_HOST]: (request, env) => storage(request, env),
-  };
-
   constructor(ctx, env) {
     super(ctx, env);
     const vars = { RRR_STORAGE_URL: `http://${STORAGE_HOST}`, RRR_DATA_DIR: "/data" };
@@ -53,6 +49,14 @@ export class InventoryContainer extends Container {
     this.envVars = vars;
   }
 }
+
+// Requests from the container to http://r2.internal are answered by storage() above.
+// This must be an assignment, not `static outboundByHost = …` inside the class: a static class field
+// defines its own property and skips the setter in @cloudflare/containers that registers the handler,
+// so the request would go out to the internet instead and fail (HTTP 530).
+InventoryContainer.outboundByHost = {
+  [STORAGE_HOST]: (request, env) => storage(request, env),
+};
 
 // Where a request goes: "redirect" (add the trailing slash), "rrr" (with the path the container should
 // see), or "assets".
